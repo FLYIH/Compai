@@ -1,0 +1,57 @@
+[
+  {
+    "speaker": "crush",
+    "message": "Hey! I've been experimenting with some new recipes lately.",
+    "timestamp": "2025-02-20T09:00:00"
+  },
+  {
+    "speaker": "you",
+    "message": "That sounds awesome! What kind of dishes have you been making?",
+    "timestamp": "2025-02-20T09:01:20"
+  },
+  {
+    "speaker": "crush",
+    "message": "Mostly pasta! I’ve been playing around with different sauces and ingredients. 😋",
+    "timestamp": "2025-02-20T09:02:10"
+  },
+  {
+    "speaker": "you",
+    "message": "Nice! Do you have a favorite sauce so far?",
+    "timestamp": "2025-02-20T09:02:55"
+  },
+  {
+    "speaker": "crush",
+    "message": "I think my creamy garlic parmesan sauce is the best one yet. It’s so rich and flavorful!",
+    "timestamp": "2025-02-20T09:03:40"
+  },
+  {
+    "speaker": "you",
+    "message": "That sounds delicious! How do you make it?",
+    "timestamp": "2025-02-20T09:04:15"
+  },
+  {
+    "speaker": "crush",
+    "message": "It’s super easy! Just butter, garlic, heavy cream, parmesan cheese, and a bit of black pepper.",
+    "timestamp": "2025-02-20T09:05:00"
+  },
+  {
+    "speaker": "you",
+    "message": "That sounds simple but so good. Do you add anything special to it?",
+    "timestamp": "2025-02-20T09:06:05"
+  },
+  {
+    "speaker": "crush",
+    "message": "Sometimes I add a bit of lemon zest or chili flakes for an extra kick. It really makes a difference!",
+    "timestamp": "2025-02-20T09:07:10"
+  },
+  {
+    "speaker": "you",
+    "message": "Wow, I need to try that! Let’s cook together sometime.",
+    "timestamp": "2025-02-20T09:08:00"
+  },
+  {
+    "speaker": "crush",
+    "message": "Absolutely! Let's plan a cooking night soon. 🍝",
+    "timestamp": "2025-02-20T09:09:00"
+  }
+]
