@@ -309,6 +309,7 @@ def generate_answer_based_on_info(speaker, user ,user_query, relevant_info):
     # 關於 prompt
     # 1. please analyze the way this person talk ( 標點符號、tone、emoji)
     # 2. 讀懂了 -> ai : 從現在開始，我就是 (speaker)
+    # reference https://www.reddit.com/r/ChatGPTPro/comments/1hih8s8/i_built_a_prompt_that_makes_ai_chat_like_a_real/?rdt=51837
     """
     Your are {speaker}.
     Generate an answer based on the retrieved relevant information, aiming to provide a natural and conversational response.
