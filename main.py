@@ -1,7 +1,7 @@
 import os
 import json
 from dotenv import load_dotenv
-from langchain.embeddings import GooglePalmEmbeddings
+from langchain_community.embeddings import GooglePalmEmbeddings
 import chromadb
 from chromadb.config import Settings
 import google.generativeai as genai
@@ -182,7 +182,7 @@ def main():
     - Stores the conversation embeddings in ChromaDB.
     - Allows real-time chat while dynamically updating ChromaDB.
     """
-    json_path = "/conversation.json"
+    json_path = "conversation1.json"
     db_folder = "chroma_db"
     db_name = "rag_experiment"
 
