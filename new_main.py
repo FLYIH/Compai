@@ -302,8 +302,13 @@ def retrieve_for_info(collection, user_query, n_results=5, min_score=0.5):
 def generate_answer_based_on_info(speaker, user ,user_query, relevant_info):
     # TODO:
     # 1. enhance prompt (not ai)
-    # 2. boyfriend/girlfriend
+    # 2. be like boyfriend/girlfriend
     # 3. name
+    # 4. good 催眠詞 (避開會被 ban 掉的關鍵字)
+
+    # 關於 prompt
+    # 1. please analyze the way this person talk ( 標點符號、tone、emoji)
+    # 2. 讀懂了 -> ai : 從現在開始，我就是 (speaker)
     """
     Your are {speaker}.
     Generate an answer based on the retrieved relevant information, aiming to provide a natural and conversational response.
