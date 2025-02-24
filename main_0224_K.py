@@ -222,7 +222,8 @@ def extract_style_from_history(chat_history_texts):
     )
 
     chain = LLMChain(llm=llm, prompt=prompt)
-    return chain.run(chat_history=chat_history_texts)
+    result = chain.run(chat_history=chat_history_texts)
+    return result.strip()
 
 def retrieve_for_info(collection, user_query, n_results=5, min_score=0.5):
     """
