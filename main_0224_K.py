@@ -191,39 +191,102 @@ def analyze_speaker_style(collection, speaker="crush", n_results=10):
 
 def extract_style_from_history(chat_history_texts):
     """
-    Uses Gemini to analyze chat history and extract writing style traits.
+    使用 Gemini 分析聊天記錄並提取寫作風格。
+    此版本使用本地開發模式，不需要 ADC 憑證。
     """
-    llm = ChatGoogleGenerativeAI(model="gemini-pro", temperature=0.3)
+    gemini_api_key = "AIzaSyDTid8X9cbe_iO9soS0IfuO9OLmvToY4KU"  
+    if not gemini_api_key:
+        raise ValueError("Gemini API Key not provided.")
 
-    prompt = PromptTemplate(
-        input_variables=["chat_history"],
-        template="""
-        Analyze the following chat messages and extract the writing style.
+    genai.configure(api_key=gemini_api_key)
+    model = genai.GenerativeModel('gemini-pro')
 
-        Chat history:
-        {chat_history}
+    prompt = f"""
+    Analyze the following chat messages and extract the writing style.
 
-        Identify and summarize:
-        - Writing style (casual, formal, humorous, serious, sarcastic, playful, etc.)
-        - Tone (friendly, direct, emotional, robotic, energetic, etc.)
-        - Commonly used emojis (if any, list them)
-        - Frequent words or phrases
-        - Punctuation usage (e.g., lots of exclamation marks, ellipses, capital letters)
+    Chat history:
+    {chat_history_texts}
 
-        Return the response in JSON format:
-        {{
-            "style": "...",
-            "tone": "...",
-            "common_emojis": ["...", "..."],
-            "frequent_words": ["...", "..."],
-            "punctuation_style": "..."
-        }}
-        """
-    )
+    Identify and summarize:
+    - Writing style (casual, formal, humorous, serious, sarcastic, playful, etc.)
+    - Tone (friendly, direct, emotional, robotic, energetic, etc.)
+    - Commonly used emojis (if any, list them)
+    - Frequent words or phrases
+    - Punctuation usage (e.g., lots of exclamation marks, ellipses, capital letters)
 
-    chain = LLMChain(llm=llm, prompt=prompt)
-    result = chain.run(chat_history=chat_history_texts)
-    return result.strip()
+    Return the response in JSON format:
+    {{
+        "style": "...",
+        "tone": "...",
+        "common_emojis": ["...", "..."],
+        "frequent_words": ["...", "..."],
+        "punctuation_style": "..."
+    }}
+    """
+
+    try:
+        result = model.generate_content(prompt)
+        # print("\n🔍 [DEBUG] Raw AI Response:", result.text)
+
+        # 新增：移除 Markdown 標記
+        cleaned_text = re.sub(r"```json|```", "", result.text).strip()
+
+        # 第 1 層：直接嘗試轉換成 JSON
+        try:
+            style_dict = json.loads(cleaned_text)
+            # print("\n✅ [DEBUG] Parsed JSON:", style_dict)
+            return style_dict
+        except json.JSONDecodeError:
+            print("\n⚠️ [DEBUG] First attempt to parse JSON failed.")
+
+        # 第 2 層：修正常見 JSON 格式問題
+        # 將單引號轉換成雙引號
+        fixed_text = re.sub(r"'", '"', cleaned_text)
+        # 移除多餘逗號
+        fixed_text = re.sub(r",\s*}", "}", fixed_text)
+        fixed_text = re.sub(r",\s*]", "]", fixed_text)
+
+        try:
+            style_dict = json.loads(fixed_text)
+            print("\n🔄 [DEBUG] Fixed JSON:", style_dict)
+            return style_dict
+        except json.JSONDecodeError:
+            print("\n⚠️ [DEBUG] Second attempt to fix and parse JSON failed.")
+
+        # 第 3 層：進一步修正 JSON 格式
+        # 自動加入雙引號
+        auto_fixed_text = re.sub(r"(\w+):", r'"\1":', fixed_text)
+        # 修正未關閉的括號
+        if auto_fixed_text.count("{") > auto_fixed_text.count("}"):
+            auto_fixed_text += "}"
+        elif auto_fixed_text.count("[") > auto_fixed_text.count("]"):
+            auto_fixed_text += "]"
+
+        try:
+            style_dict = json.loads(auto_fixed_text)
+            print("\n🔧 [DEBUG] Auto-fixed JSON:", style_dict)
+            return style_dict
+        except json.JSONDecodeError:
+            print("\n⚠️ [DEBUG] Third attempt to auto-fix and parse JSON failed.")
+
+        print("\n📝 [DEBUG] Returning raw text for manual inspection.")
+        return {
+            "style": result.text,
+            "tone": "unknown",
+            "common_emojis": [],
+            "frequent_words": [],
+            "punctuation_style": "unknown"
+        }
+
+    except Exception as e:
+        print(f"⚠️ [ERROR] Unexpected error: {e}")
+        return {
+            "style": "neutral",
+            "tone": "neutral",
+            "common_emojis": [],
+            "frequent_words": [],
+            "punctuation_style": "standard"
+        }
 
 def retrieve_for_info(collection, user_query, n_results=5, min_score=0.5):
     """
