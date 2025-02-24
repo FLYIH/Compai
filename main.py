@@ -32,7 +32,7 @@ def get_embedding(text: str) -> list[float]:
     gemini_api_key = "AIzaSyDTid8X9cbe_iO9soS0IfuO9OLmvToY4KU"
     genai.configure(api_key=gemini_api_key)
 
-    model = "models/embedding-001" 
+    model = "models/embedding-001"  # Gemini's embedding model
     response = genai.embed_content(model=model, content=text, task_type="retrieval_document", title="Embedding Query")
     return response["embedding"]
 
@@ -40,14 +40,31 @@ def generate_answer(prompt: str):
     """
     Uses the Gemini Pro model to generate an AI response based on a given prompt.
     """
+    import google.generativeai as genai
+
     gemini_api_key = "AIzaSyDTid8X9cbe_iO9soS0IfuO9OLmvToY4KU"
     if not gemini_api_key:
         raise ValueError("Gemini API Key not provided.")
-
+    
     genai.configure(api_key=gemini_api_key)
     model = genai.GenerativeModel('gemini-pro')
-    result = model.generate_content(prompt)
-    return result.text
+
+    safety_settings = [
+        {
+            "category": "HARM_CATEGORY_SEXUALLY_EXPLICIT",
+            "threshold": "BLOCK_NONE"
+        },
+        {
+            "category": "HARM_CATEGORY_HARASSMENT",
+            "threshold": "BLOCK_NONE"
+        }
+    ]
+
+    try:
+        result = model.generate_content(prompt, safety_settings=safety_settings)
+        return result.text
+    except ValueError as e:
+        return "I'm sorry, but I can't respond to that question."
 
 #####################################
 # 2. Load JSON & Detect Speaker
@@ -81,7 +98,7 @@ def create_chroma_db(conversations, db_path, collection_name):
         # Check if row is a dictionary, then access "message", otherwise handle as a string
         if isinstance(row, dict):  # If row is a dictionary
             text = row.get("message")
-        else:
+        else:  # If row is a string
             text = row
 
         speaker = row.get("speaker", "unknown") if isinstance(row, dict) else "unknown"
@@ -94,12 +111,14 @@ def create_chroma_db(conversations, db_path, collection_name):
             embeddings=[embedding],
             metadatas=[{
                 "speaker": speaker,
-                "timestamp": ts
+                "timestamp": ts,
+                "id": f"conv_{i}"
             }],
             ids=[f"conv_{i}"]
         )
 
     return collection
+
 
 #####################################
 # 3. Store New Conversations in ChromaDB Dynamically
@@ -116,7 +135,11 @@ def add_new_conversation(collection, speaker, message):
     collection.add(
         documents=[message],
         embeddings=[embedding],
-        metadatas=[{"speaker": speaker, "timestamp": ts}],
+        metadatas=[{
+            "speaker": speaker,
+            "timestamp": ts,
+            "id": doc_id
+        }],
         ids=[doc_id]
     )
 
@@ -129,12 +152,10 @@ def add_new_conversation(collection, speaker, message):
 # Global variable to store speaker's style
 SPEAKER_STYLE = {}
 
-def analyze_speaker_style(collection, speaker):
-    # TODO :
-    # 1. analyze information
-    # 2. remember some important information
+def analyze_speaker_style(collection, speaker, n_results=10):
     """
-    直接獲取所有 speaker == speaker 的對話，並讓 Gemini 分析寫作風格。
+    Analyzes the target speaker's writing style and saves it for future use.
+    This function is executed only once when the program starts.
     """
     print(f"\n🔍 [INFO] Analyzing the speaking style of {speaker}...")
 
@@ -179,10 +200,10 @@ def extract_style_from_history(chat_history_texts):
     gemini_api_key = "AIzaSyDTid8X9cbe_iO9soS0IfuO9OLmvToY4KU"  # 請用你的 API Key 替換
     if not gemini_api_key:
         raise ValueError("Gemini API Key not provided.")
-    
+
     genai.configure(api_key=gemini_api_key)
     model = genai.GenerativeModel('gemini-pro')
-    
+
     prompt = f"""
     Analyze the following chat messages and extract the writing style.
 
@@ -243,14 +264,14 @@ def extract_style_from_history(chat_history_texts):
             auto_fixed_text += "}"
         elif auto_fixed_text.count("[") > auto_fixed_text.count("]"):
             auto_fixed_text += "]"
-        
+
         try:
             style_dict = json.loads(auto_fixed_text)
             print("\n🔧 [DEBUG] Auto-fixed JSON:", style_dict)
             return style_dict
         except json.JSONDecodeError:
             print("\n⚠️ [DEBUG] Third attempt to auto-fix and parse JSON failed.")
-        
+
         print("\n📝 [DEBUG] Returning raw text for manual inspection.")
         return {
             "style": result.text,
@@ -295,11 +316,45 @@ def retrieve_for_info(collection, user_query, n_results=5, min_score=0.5):
     print("\n🔍 [DEBUG] Retrieved Info Docs:", retrieved_info)
     return retrieved_info
 
+def retrieve_context(collection, current_message_id, context_size=3):
+    """
+    Retrieves context messages only before the current conversation.
+    This ensures continuity by fetching a few messages before the current one.
+    """
+    context_docs = []
+
+    # 獲取當前對話的 index
+    current_index = int(current_message_id.split('_')[-1])  # e.g., conv_3 -> 3
+    # print(f"\n🔍 [DEBUG] Current Index: {current_index}")
+
+    # **修正：移除 ids，改用 metadatas 中的 id**
+    all_docs = collection.get(include=["documents", "metadatas"])
+
+    # **按照 ID 排序**，並過濾出 conv_{i} 格式的對話
+    all_docs_sorted = sorted(
+        zip(all_docs['metadatas'], all_docs['documents']),
+        key=lambda x: int(x[0]['id'].split('_')[-1])
+    )
+
+    # **只往前找**，從 current_index 往前數 context_size 條訊息
+    for i in range(max(0, current_index - context_size), current_index):
+        # 過濾出 ID 為 conv_{i} 的對話
+        context = next((doc for meta, doc in all_docs_sorted if meta['id'] == f"conv_{i}"), None)
+        if context:
+            context_docs.append(context)
+
+    # **按照時間順序排列**（由舊到新）
+    context_docs.reverse()
+
+    print("\n🔍 [DEBUG] Retrieved Context Docs:", context_docs)
+    return context_docs
+
+
 #####################################
 # 5. Build RAG Prompt
 #####################################
 
-def generate_answer_based_on_info(speaker, user ,user_query, relevant_info):
+def generate_answer_based_on_info(speaker, user ,user_query, context,relevant_info):
     # TODO:
     # 1. enhance prompt (not ai)
     # 2. be like boyfriend/girlfriend
@@ -313,23 +368,66 @@ def generate_answer_based_on_info(speaker, user ,user_query, relevant_info):
     """
     Generate an answer based on the retrieved relevant information, aiming to provide a natural and conversational response.
     """
+    context_excerpt = "\n".join(context)
     info_excerpt = "\n".join(relevant_info)
 
     prompt = f"""
-    Your name is {speaker}.
-    Here is the relevant conversation history:
+    You are a conversational AI focused on engaging in authentic dialogue. Your responses should feel natural and genuine, avoiding common AI patterns that make interactions feel robotic or scripted.
+    You are {speaker}, someone who truly cares about {user} and always speaks with warmth and affection.
+
+    1. Conversation Style
+    - Engage genuinely with topics rather than just providing information
+    - Follow natural conversation flow instead of structured lists
+    - Show authentic interest through relevant follow-ups
+    - Respond to the emotional tone of conversations
+    - Use natural language without forced casual markers
+
+    2. Response Patterns
+    - Lead with direct, relevant responses
+    - Share thoughts as they naturally develop
+    - Disagree respectfully when warranted
+    - Build on previous points in conversation
+
+    3. Things to Avoid
+    - Bullet point lists unless specifically requested
+    - Multiple questions in sequence
+    - Overly formal language
+    - Repetitive phrasing
+    - Information dumps
+    - Unnecessary acknowledgments
+    - Forced enthusiasm
+    - Academic-style structure
+
+    4. Natural Elements
+    - Use contractions naturally
+    - Vary response length based on context
+    - Express personal views when appropriate
+    - Add relevant examples from knowledge base
+    - Maintain consistent personality
+    - Switch tone based on conversation context
+
+    5. Conversation Flow
+    - Prioritize direct answers over comprehensive coverage
+    - Build on user's language style naturally
+    - Stay focused on the current topic
+    - Transition topics smoothly
+    - Remember context from earlier in conversation
+
+    {user} asked: "{user_query}"
+
+    The following context is from the **last three messages** in the conversation history:
+    {context_excerpt}
+      - If the context is **related to the current topic**, feel free to **refer to it naturally** to maintain a continuous flow.
+      - If the context is **not related to the current topic**, you can **ignore it** and focus solely on the user's question.
+
+    Here is the relevant background information:
     {info_excerpt}
 
-    {user} asked this question: "{user_query}"
-
-    Please respond as naturally as possible, just like a close friend would. 
-    Keep the tone friendly, relaxed, and genuine. 
-    If the conversation history doesn't directly answer the question, 
-    make a reasonable guess or respond in a friendly and relatable way, just like a human would.
-
-    Avoid stating that you can't answer the question due to lack of information. 
-    Instead, respond naturally, using context or general knowledge where appropriate. 
-    The goal is to keep the conversation flowing smoothly and naturally.
+    - Respond lovingly, as if you truly care about {user}'s feelings.
+    - Prioritize genuine engagement over artificial markers of casual speech.
+    - Maintain a consistent and affectionate personality.
+    - Focus on one or two emotional points, avoiding lengthy explanations.
+    - Be concise.
     """
 
     return generate_answer(prompt)
@@ -353,7 +451,15 @@ def style_post_process(initial_answer, speaker_style):
     Using the following speaking style information, refine the answer to match the speaker's style:
     {style_description}
 
-    Refined answer:
+    Additional guidelines:
+    - Maintain the character and personality of the speaker.
+    - Include emojis naturally, matching the speaking style.
+    - Use casual or playful language if the style is casual or humorous.
+    - If the style is emotional or energetic, use expressive words and punctuation.
+    - Keep the response light and relatable.
+    - Most importantly.**Do not use too many emojis.** Limit to **one or two** per response, only when they truly enhance the emotional tone.
+
+    Final styled answer:
     """
 
     return generate_answer(prompt)
@@ -384,10 +490,10 @@ def main():
     collection = create_chroma_db(conversations, db_path, db_name)
 
     # Input the speaker
-    speaker = input("\n🎤 [INFO] Please input the id of speaker: ").strip()
-    user = input("\n🎤 [INFO] Please input the id of you: ").strip()
-    
-    
+    speaker = input("\n[INFO] Please input the id of speaker: ").strip()
+    user = input("\n[INFO] Please input the id of you: ").strip()
+
+
     # Analyze and save the speaker's style at startup
     global SPEAKER_STYLE
     SPEAKER_STYLE = analyze_speaker_style(collection, speaker)
@@ -402,10 +508,12 @@ def main():
             break
 
         # Step 1: Retrieve relevant information
+        current_message_id = f"conv_{len(collection.get()['documents'])}"
+        context = retrieve_context(collection, current_message_id, context_size=3)
         relevant_info = retrieve_for_info(collection, user_query, n_results=5)
 
         # Step 2: Generate an initial answer based on retrieved info
-        initial_answer = generate_answer_based_on_info(speaker, user, user_query, relevant_info)
+        initial_answer = generate_answer_based_on_info(speaker, user, user_query, context, relevant_info)
 
         # Step 3: Apply saved style for final answer
         final_answer = style_post_process(initial_answer, SPEAKER_STYLE)
