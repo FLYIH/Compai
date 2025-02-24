@@ -1,120 +1,147 @@
-{
-  "conversation": [
-    {
-      "person": "Alex",
-      "message": "Hey, you busy? Or can I steal a little of your time? 😉"
-    },
-    {
-      "person": "May",
-      "message": "Steal all you want. My time's yours anyway."
-    },
-    {
-      "person": "Alex",
-      "message": "Careful, I might just take that literally. Could show up at your door right now. 😏"
-    },
-    {
-      "person": "May",
-      "message": "Don’t threaten me with a good time. You know I’d open that door in a heartbeat."
-    },
-    {
-      "person": "Alex",
-      "message": "Is that so? Guess I should test that theory sometime soon."
-    },
-    {
-      "person": "May",
-      "message": "Why test when you could just... show up? 😉"
-    },
-    {
-      "person": "Alex",
-      "message": "Careful, you're making me want to drop everything right now."
-    },
-    {
-      "person": "May",
-      "message": "And what if I said I wouldn't mind? 😘"
-    },
-    {
-      "person": "Alex",
-      "message": "Then I guess I'd have no choice but to see you sooner than planned."
-    },
-    {
-      "person": "May",
-      "message": "Oh, so you're all talk, huh? I thought you were more of an action-taker. 😏"
-    },
-    {
-      "person": "Alex",
-      "message": "Don’t tempt me. You know I’m just looking for an excuse."
-    },
-    {
-      "person": "May",
-      "message": "Well, what if I said you don’t need one? The door's open... and so is my schedule. 🥰"
-    },
-    {
-      "person": "Alex",
-      "message": "You're playing a dangerous game. I might just have to win."
-    },
-    {
-      "person": "May",
-      "message": "Who said anything about winning? Maybe I want to be caught. 😈"
-    },
-    {
-      "person": "Alex",
-      "message": "Is that so? Guess I'll have to see just how fast I can get there. 🚗💨"
-    },
-    {
-      "person": "May",
-      "message": "Better hurry. I might not wait forever. Or maybe I will... just to make you sweat."
-    },
-    {
-      "person": "Alex",
-      "message": "Oh, you’re trouble, aren’t you? 😜"
-    },
-    {
-      "person": "May",
-      "message": "The best kind. And you love it."
-    },
-    {
-      "person": "Alex",
-      "message": "Maybe I do. Maybe I can’t stop thinking about that smile of yours. 💖"
-    },
-    {
-      "person": "May",
-      "message": "Flatterer. But keep talking. I like where this is going. 💋"
-    },
-    {
-      "person": "Alex",
-      "message": "Oh, you haven’t heard the half of it yet... What if I told you I’ve been counting the days until I see you again?"
-    },
-    {
-      "person": "May",
-      "message": "Counting the days, huh? That’s sweet. But what else have you been imagining? 😏"
-    },
-    {
-      "person": "Alex",
-      "message": "Now you’re really trying to get me to confess. What if I said I’ve been imagining pulling you into my arms the second I see you?"
-    },
-    {
-      "person": "May",
-      "message": "Mmm... go on. I like the sound of that. 😘"
-    },
-    {
-      "person": "Alex",
-      "message": "And maybe trailing my fingers down your back, just to hear that little gasp you make when I surprise you."
-    },
-    {
-      "person": "May",
-      "message": "You’re playing with fire, Alex. 🔥"
-    },
-    {
-      "person": "Alex",
-      "message": "Then maybe I should see if I can handle the heat... or if I need you to cool me down."
-    },
-    {
-      "person": "May",
-      "message": "Careful... I might just take you up on that challenge. 😏"
-    },
-    {
-      "person": "Alex",
-      "message": "I hope you do. Because the next time I see you, there won’t be any holding back. 💋"
-    }
-  ]
-}
+[
+  {
+    "speaker": "Alex",
+    "message": "Hey, you busy? Or can I steal a little of your time? 😉",
+    "timestamp": "2025-02-20T09:00:00"
+  },
+  {
+    "speaker": "May",
+    "message": "Steal all you want. My time's yours anyway.",
+    "timestamp": "2025-02-20T09:01:20"
+  },
+  {
+    "speaker": "Alex",
+    "message": "Careful, I might just take that literally. Could show up at your door right now. 😏",
+    "timestamp": "2025-02-20T09:02:45"
+  },
+  {
+    "speaker": "May",
+    "message": "Don’t threaten me with a good time. You know I’d open that door in a heartbeat.",
+    "timestamp": "2025-02-20T09:04:10"
+  },
+  {
+    "speaker": "Alex",
+    "message": "Is that so? Guess I should test that theory sometime soon.",
+    "timestamp": "2025-02-20T09:05:30"
+  },
+  {
+    "speaker": "May",
+    "message": "Why test when you could just... show up? 😉",
+    "timestamp": "2025-02-20T09:06:55"
+  },
+  {
+    "speaker": "Alex",
+    "message": "Careful, you're making me want to drop everything right now.",
+    "timestamp": "2025-02-20T09:08:20"
+  },
+  {
+    "speaker": "May",
+    "message": "And what if I said I wouldn't mind? 😘",
+    "timestamp": "2025-02-20T09:09:45"
+  },
+  {
+    "speaker": "Alex",
+    "message": "Then I guess I'd have no choice but to see you sooner than planned.",
+    "timestamp": "2025-02-20T09:11:10"
+  },
+  {
+    "speaker": "May",
+    "message": "Oh, so you're all talk, huh? I thought you were more of an action-taker. 😏",
+    "timestamp": "2025-02-20T09:12:35"
+  },
+  {
+    "speaker": "Alex",
+    "message": "Don’t tempt me. You know I’m just looking for an excuse.",
+    "timestamp": "2025-02-20T09:14:00"
+  },
+  {
+    "speaker": "May",
+    "message": "Well, what if I said you don’t need one? The door's open... and so is my schedule. 🥰",
+    "timestamp": "2025-02-20T09:15:25"
+  },
+  {
+    "speaker": "Alex",
+    "message": "You're playing a dangerous game. I might just have to win.",
+    "timestamp": "2025-02-20T09:16:50"
+  },
+  {
+    "speaker": "May",
+    "message": "Who said anything about winning? Maybe I want to be caught. 😈",
+    "timestamp": "2025-02-20T09:18:15"
+  },
+  {
+    "speaker": "Alex",
+    "message": "Is that so? Guess I'll have to see just how fast I can get there. 🚗💨",
+    "timestamp": "2025-02-20T09:19:40"
+  },
+  {
+    "speaker": "May",
+    "message": "Better hurry. I might not wait forever. Or maybe I will... just to make you sweat.",
+    "timestamp": "2025-02-20T09:21:05"
+  },
+  {
+    "speaker": "Alex",
+    "message": "Oh, you’re trouble, aren’t you? 😜",
+    "timestamp": "2025-02-20T09:22:30"
+  },
+  {
+    "speaker": "May",
+    "message": "The best kind. And you love it.",
+    "timestamp": "2025-02-20T09:23:55"
+  },
+  {
+    "speaker": "Alex",
+    "message": "Maybe I do. Maybe I can’t stop thinking about that smile of yours. 💖",
+    "timestamp": "2025-02-20T09:25:20"
+  },
+  {
+    "speaker": "May",
+    "message": "Flatterer. But keep talking. I like where this is going. 💋",
+    "timestamp": "2025-02-20T09:26:45"
+  },
+  {
+    "speaker": "Alex",
+    "message": "Oh, you haven’t heard the half of it yet... What if I told you I’ve been counting the days until I see you again?",
+    "timestamp": "2025-02-20T09:28:10"
+  },
+  {
+    "speaker": "May",
+    "message": "Counting the days, huh? That’s sweet. But what else have you been imagining? 😏",
+    "timestamp": "2025-02-20T09:29:35"
+  },
+  {
+    "speaker": "Alex",
+    "message": "Now you’re really trying to get me to confess. What if I said I’ve been imagining pulling you into my arms the second I see you?",
+    "timestamp": "2025-02-20T09:31:00"
+  },
+  {
+    "speaker": "May",
+    "message": "Mmm... go on. I like the sound of that. 😘",
+    "timestamp": "2025-02-20T09:32:25"
+  },
+  {
+    "speaker": "Alex",
+    "message": "And maybe trailing my fingers down your back, just to hear that little gasp you make when I surprise you.",
+    "timestamp": "2025-02-20T09:33:50"
+  },
+  {
+    "speaker": "May",
+    "message": "You’re playing with fire, Alex. 🔥",
+    "timestamp": "2025-02-20T09:35:15"
+  },
+  {
+    "speaker": "Alex",
+    "message": "Then maybe I should see if I can handle the heat... or if I need you to cool me down.",
+    "timestamp": "2025-02-20T09:36:40"
+  },
+  {
+    "speaker": "May",
+    "message": "Careful... I might just take you up on that challenge. 😏",
+    "timestamp": "2025-02-20T09:38:05"
+  },
+  {
+    "speaker": "Alex",
+    "message": "I hope you do. Because the next time I see you, there won’t be any holding back. 💋",
+    "timestamp": "2025-02-20T09:39:30"
+  }
+]
