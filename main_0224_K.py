@@ -149,17 +149,7 @@ def analyze_speaker_style(collection, speaker="crush", n_results=10):
     results = collection.get(where={"speaker": speaker})
 
     # 確認有找到相關文件
-    if "documents" in results and results["documents"]:
-        # 新增：逐一檢查並展平 (Flatten)
-        style_docs = []
-        for item in results["documents"]:
-            if isinstance(item, list):
-                style_docs.extend(item)  # 如果是 list，就展平加入
-            elif isinstance(item, str):
-                style_docs.append(item)  # 如果是 str，就直接加入
-            else:
-                print("\n⚠️ [ERROR] Unexpected item type:", type(item), "Value:", item)
-    else:
+    if "documents" not in results or not results["documents"]:
         print(f"⚠️ [WARN] No historical messages found for {speaker}. Using default style.")
         return {
             "style": "neutral",
@@ -169,14 +159,34 @@ def analyze_speaker_style(collection, speaker="crush", n_results=10):
             "punctuation_style": "standard"
         }
 
-    # 將所有對話組合成單一文字區塊
+    # documents 可能是一個2維 list，要攤平
+    style_docs = []
+    for item in results["documents"]:
+        # 有時候會是 list of strings
+        if isinstance(item, list):
+            style_docs.extend(item)
+        elif isinstance(item, str):
+            style_docs.append(item)
+        else:
+            print("⚠️ [ERROR] Unexpected item type:", type(item), "Value:", item)
+
+    # 將所有對話組合成單一文字
     chat_history_texts = "\n".join(style_docs)
+    style_json = extract_style_from_history(chat_history_texts)
 
-    # 使用 Gemini 分析寫作風格
-    style = extract_style_from_history(chat_history_texts)
-
-    print(f"\n🎭 [INFO] Extracted speaking style for {speaker}: ", style)
-    return style
+    # 解析 JSON 結果，如果失敗就回傳預設
+    try:
+        style_data = json.loads(style_json)
+        return style_data
+    except json.JSONDecodeError:
+        print("⚠️ [ERROR] Failed to parse style JSON. Using default style.")
+        return {
+            "style": "neutral",
+            "tone": "neutral",
+            "common_emojis": [],
+            "frequent_words": [],
+            "punctuation_style": "standard"
+        }
 
 
 def extract_style_from_history(chat_history_texts):
