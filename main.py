@@ -19,8 +19,6 @@ from chromadb.config import Settings
 import google.generativeai as genai
 import datetime
 
-
-
 #####################################
 # 1. Basic Setup: Embeddings + LLM (Gemini)
 #####################################
@@ -32,7 +30,7 @@ def get_embedding(text: str) -> list[float]:
     gemini_api_key = "AIzaSyDTid8X9cbe_iO9soS0IfuO9OLmvToY4KU"
     genai.configure(api_key=gemini_api_key)
 
-    model = "models/embedding-001"  # Gemini's embedding model
+    model = "models/embedding-001"
     response = genai.embed_content(model=model, content=text, task_type="retrieval_document", title="Embedding Query")
     return response["embedding"]
 
@@ -45,7 +43,7 @@ def generate_answer(prompt: str):
     gemini_api_key = "AIzaSyDTid8X9cbe_iO9soS0IfuO9OLmvToY4KU"
     if not gemini_api_key:
         raise ValueError("Gemini API Key not provided.")
-    
+
     genai.configure(api_key=gemini_api_key)
     model = genai.GenerativeModel('gemini-pro')
 
@@ -162,17 +160,7 @@ def analyze_speaker_style(collection, speaker, n_results=10):
     results = collection.get(where={"speaker": speaker})
 
     # 確認有找到相關文件
-    if "documents" in results and results["documents"]:
-        # 新增：逐一檢查並展平 (Flatten)
-        style_docs = []
-        for item in results["documents"]:
-            if isinstance(item, list):
-                style_docs.extend(item)  # 如果是 list，就展平加入
-            elif isinstance(item, str):
-                style_docs.append(item)  # 如果是 str，就直接加入
-            else:
-                print("\n⚠️ [ERROR] Unexpected item type:", type(item), "Value:", item)
-    else:
+    if "documents" not in results or not results["documents"]:
         print(f"⚠️ [WARN] No historical messages found for {speaker}. Using default style.")
         return {
             "style": "neutral",
@@ -181,6 +169,17 @@ def analyze_speaker_style(collection, speaker, n_results=10):
             "frequent_words": [],
             "punctuation_style": "standard"
         }
+
+    # documents 可能是一個2維 list，要攤平
+    style_docs = []
+    for item in results["documents"]:
+        # 有時候會是 list of strings
+        if isinstance(item, list):
+            style_docs.extend(item)
+        elif isinstance(item, str):
+            style_docs.append(item)
+        else:
+            print("⚠️ [ERROR] Unexpected item type:", type(item), "Value:", item)
 
     # 將所有對話組合成單一文字區塊
     chat_history_texts = "\n".join(style_docs)
