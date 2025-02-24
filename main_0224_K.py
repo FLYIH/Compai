@@ -45,8 +45,23 @@ def generate_answer(prompt: str):
 
     genai.configure(api_key=gemini_api_key)
     model = genai.GenerativeModel('gemini-pro')
-    result = model.generate_content(prompt)
-    return result.text
+    
+    safety_settings = [
+        {
+            "category": "HARM_CATEGORY_SEXUALLY_EXPLICIT",
+            "threshold": "BLOCK_NONE"
+        },
+        {
+            "category": "HARM_CATEGORY_HARASSMENT",
+            "threshold": "BLOCK_NONE"
+        }
+    ]
+
+    try:
+        result = model.generate_content(prompt, safety_settings=safety_settings)
+        return result.text
+    except ValueError as e:
+        return "I'm sorry, but I can't respond to that question."
 
 #####################################
 # 2. Load JSON & Detect Speaker
@@ -89,8 +104,8 @@ def create_chroma_db(conversations, db_path, collection_name):
         collection.add(
             documents=[text],
             embeddings=[embedding],
-            metadatas=[{"speaker": speaker, "timestamp": ts}],
-            ids=[doc_id]
+            metadatas=[{"speaker": speaker, "timestamp": ts, "id": f"conv_{i}"}],
+            ids=[f"conv_{i}"]
         )
 
     return collection
