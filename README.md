@@ -60,7 +60,7 @@ pip install -r requirements.txt
 ```
 
 ## API Key Setup
-This project uses Google Gemini API. Obtain your API key and create a .env file in the root directory:
+This project uses Google Gemini API. Obtain your API key and create a ``.env`` file in the root directory:
 ```
 GEMINI_API_KEY=your_gemini_api_key_here
 ```
