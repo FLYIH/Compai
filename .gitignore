@@ -1,0 +1,58 @@
+# Python
+*.pyc
+__pycache__/
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+ENV/
+.venv/
+.pytest_cache/
+.coverage
+
+# Virtual Environment
+venv/
+env/
+
+# IDEs and Editors
+.idea/
+.vscode/
+*.swp
+
+# OS Files
+.DS_Store
+Thumbs.db
+
+# Logs and Reports
+*.log
+*.out
+*.err
+
+# Environment Variables
+.env
+
+# JSON and Data Files
+*.json
+*.db
+
+# ChromaDB Files
+chroma_db/
+
+# Cache
+.cache/
+*.cache
+
+# Jupyter Notebooks Checkpoints
+.ipynb_checkpoints/
+
+# Debugging
+__debug__/
+
+# MacOS
+.DS_Store
+
+# Backup Files
+*.bak
+*.tmp
+*.old

@@ -1,6 +1,6 @@
 import os
 import re
-import json
+import orjson
 from dotenv import load_dotenv
 from langchain.embeddings import GooglePalmEmbeddings
 # from langchain_google_genai import ChatGoogleGenerativeAI
@@ -23,7 +23,10 @@ from collections import deque
 #####################################
 # 1. Basic Setup: Embeddings + LLM (Gemini)
 #####################################
+load_dotenv()
 
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+genai.configure(api_key=GEMINI_API_KEY)
 conversation_buffer = deque(maxlen=3)
 
 def get_embedding(text: str) -> list[float]:
@@ -36,8 +39,6 @@ def get_embeddings_batch(texts: list[str]) -> list[list[float]]:
     """
     使用批次處理獲取 embeddings，減少 API 請求次數，提升速度。
     """
-    gemini_api_key = "AIzaSyDTid8X9cbe_iO9soS0IfuO9OLmvToY4KU"
-    genai.configure(api_key=gemini_api_key)
 
     model = "models/embedding-001"
     responses = []
@@ -97,13 +98,6 @@ def generate_answer(prompt: str):
     """
     Uses the Gemini Pro model to generate an AI response based on a given prompt.
     """
-    import google.generativeai as genai
-
-    gemini_api_key = "AIzaSyDTid8X9cbe_iO9soS0IfuO9OLmvToY4KU"
-    if not gemini_api_key:
-        raise ValueError("Gemini API Key not provided.")
-
-    genai.configure(api_key=gemini_api_key)
     model = genai.GenerativeModel('gemini-1.5-flash')
 
     safety_settings = [
@@ -129,10 +123,10 @@ def generate_answer(prompt: str):
 
 def load_conversation_json_in_chunks(json_path: str, chunk_size=100):
     """
-    分批讀取 JSON，減少記憶體佔用。
+    使用 orjson 加快 JSON 讀取速度
     """
-    with open(json_path, "r", encoding="utf-8") as f:
-        data = json.load(f)
+    with open(json_path, "rb") as f:
+        data = orjson.loads(f.read())
     
     for i in range(0, len(data), chunk_size):
         yield data[i:i + chunk_size]
@@ -275,11 +269,7 @@ def extract_style_from_history(chat_history_texts):
     使用 Gemini 分析聊天記錄並提取寫作風格。
     此版本使用本地開發模式，不需要 ADC 憑證。
     """
-    gemini_api_key = "AIzaSyDTid8X9cbe_iO9soS0IfuO9OLmvToY4KU"
-    if not gemini_api_key:
-        raise ValueError("Gemini API Key not provided.")
 
-    genai.configure(api_key=gemini_api_key)
     model = genai.GenerativeModel('gemini-1.5-flash')
 
     prompt = f"""
@@ -307,48 +297,39 @@ def extract_style_from_history(chat_history_texts):
 
     try:
         result = model.generate_content(prompt)
-        # print("\n🔍 [DEBUG] Raw AI Response:", result.text)
-
         # 新增：移除 Markdown 標記
         cleaned_text = re.sub(r"```json|```", "", result.text).strip()
 
         # 第 1 層：直接嘗試轉換成 JSON
         try:
-            style_dict = json.loads(cleaned_text)
-            # print("\n✅ [DEBUG] Parsed JSON:", style_dict)
+            style_dict = orjson.loads(cleaned_text.encode('utf-8'))
             return style_dict
-        except json.JSONDecodeError:
-            print("\n⚠️ [DEBUG] First attempt to parse JSON failed.")
+        except Exception as e:
+            print("\n⚠️ [DEBUG] First attempt to parse JSON failed:", e)
 
         # 第 2 層：修正常見 JSON 格式問題
-        # 將單引號轉換成雙引號
         fixed_text = re.sub(r"'", '"', cleaned_text)
-        # 移除多餘逗號
         fixed_text = re.sub(r",\s*}", "}", fixed_text)
         fixed_text = re.sub(r",\s*]", "]", fixed_text)
 
         try:
-            style_dict = json.loads(fixed_text)
-            print("\n🔄 [DEBUG] Fixed JSON:", style_dict)
+            style_dict = orjson.loads(fixed_text.encode('utf-8'))
             return style_dict
-        except json.JSONDecodeError:
-            print("\n⚠️ [DEBUG] Second attempt to fix and parse JSON failed.")
+        except Exception as e:
+            print("\n⚠️ [DEBUG] Second attempt to fix and parse JSON failed:", e)
 
         # 第 3 層：進一步修正 JSON 格式
-        # 自動加入雙引號
         auto_fixed_text = re.sub(r"(\w+):", r'"\1":', fixed_text)
-        # 修正未關閉的括號
         if auto_fixed_text.count("{") > auto_fixed_text.count("}"):
             auto_fixed_text += "}"
         elif auto_fixed_text.count("[") > auto_fixed_text.count("]"):
             auto_fixed_text += "]"
 
         try:
-            style_dict = json.loads(auto_fixed_text)
-            print("\n🔧 [DEBUG] Auto-fixed JSON:", style_dict)
+            style_dict = orjson.loads(auto_fixed_text.encode('utf-8'))
             return style_dict
-        except json.JSONDecodeError:
-            print("\n⚠️ [DEBUG] Third attempt to auto-fix and parse JSON failed.")
+        except Exception as e:
+            print("\n⚠️ [DEBUG] Third attempt to auto-fix and parse JSON failed:", e)
 
         print("\n📝 [DEBUG] Returning raw text for manual inspection.")
         return {
@@ -566,9 +547,6 @@ def main():
             print("\nGoodbye!")
             break
 
-        add_to_buffer(user, user_query)
-        add_new_conversation(collection, user, user_query)
-
         # Step 1: Retrieve relevant information
         # current_message_id = f"conv_{len(collection.get()['documents'])}"
         context_pairs = get_last_n_messages()  # e.g. [(speaker, msg), (speaker2, msg2), ...]
@@ -586,6 +564,8 @@ def main():
         print(f"\n{speaker}:{final_answer}")
 
         # Step 5: Store new conversations in ChromaDB
+        add_to_buffer(user, user_query)
+        add_new_conversation(collection, user, user_query)
         add_to_buffer(speaker, final_answer)
         add_new_conversation(collection, speaker, final_answer)
 
