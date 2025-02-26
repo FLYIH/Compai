@@ -3,23 +3,17 @@ import re
 import orjson
 from dotenv import load_dotenv
 from langchain.embeddings import GooglePalmEmbeddings
-# from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_community.embeddings import GooglePalmEmbeddings
-# from langchain_google_genai import ChatGoogleGenerativeAI
 import google.generativeai as genai
-
-
-
 from langchain.chains import LLMChain
 from langchain.prompts import PromptTemplate
 from langchain.embeddings.base import Embeddings
-
 import chromadb
 from chromadb.config import Settings
 import google.generativeai as genai
 import uuid, datetime
 from collections import deque
-# source venv/bin/activate
+
 #####################################
 # 1. Basic Setup: Embeddings + LLM (Gemini)
 #####################################
@@ -30,16 +24,9 @@ genai.configure(api_key=GEMINI_API_KEY)
 conversation_buffer = deque(maxlen=3)
 
 def get_embedding(text: str) -> list[float]:
-    """
-    單行版本的 get_embedding，但改用批次版本以提升效能
-    """
     return get_embeddings_batch([text])[0]
 
 def get_embeddings_batch(texts: list[str]) -> list[list[float]]:
-    """
-    使用批次處理獲取 embeddings，減少 API 請求次數，提升速度。
-    """
-
     model = "models/embedding-001"
     responses = []
 
@@ -72,7 +59,7 @@ def get_embeddings_batch(texts: list[str]) -> list[list[float]]:
 
                 # 檢查每一個 embedding
                 for idx, embedding in enumerate(embeddings):
-                    if embedding:  # 如果 embedding 不為空，則保留
+                    if embedding:
                         valid_texts.append(batch[idx])
                         valid_embeddings.append(embedding)
                     else:
@@ -147,7 +134,6 @@ def create_chroma_db(conversations, collection):
         if not ts:
             ts = datetime.datetime.now().isoformat()
 
-        # 使用 UUID 做 doc_id
         doc_uuid = f"conv_{uuid.uuid4()}"
 
         texts.append(text)
@@ -158,13 +144,12 @@ def create_chroma_db(conversations, collection):
             "id": doc_uuid  
         })
 
-        # 批次執行
         if len(texts) == batch_size or i == len(conversations) - 1:
             batch_embeddings = get_embeddings_batch(texts)
             filtered_texts, filtered_ids, filtered_metadatas, filtered_embeddings = [], [], [], []
 
             for idx, emb in enumerate(batch_embeddings):
-                if emb:  # 有效 embedding
+                if emb:
                     filtered_texts.append(texts[idx])
                     filtered_ids.append(ids[idx])
                     filtered_metadatas.append(metadatas[idx])
@@ -254,10 +239,7 @@ def analyze_speaker_style(collection, speaker, n_results=10):
         else:
             print("⚠️ [ERROR] Unexpected item type:", type(item), "Value:", item)
 
-    # 將所有對話組合成單一文字區塊
     chat_history_texts = "\n".join(style_docs)
-
-    # 使用 Gemini 分析寫作風格
     style = extract_style_from_history(chat_history_texts)
 
     print(f"\n🎭 [INFO] Extracted speaking style for {speaker}: ", style)
@@ -297,7 +279,6 @@ def extract_style_from_history(chat_history_texts):
 
     try:
         result = model.generate_content(prompt)
-        # 新增：移除 Markdown 標記
         cleaned_text = re.sub(r"```json|```", "", result.text).strip()
 
         # 第 1 層：直接嘗試轉換成 JSON
@@ -367,7 +348,7 @@ def retrieve_for_info(collection, user_query, n_results=5, min_score=0.5):
     retrieved_info = []
     if "documents" in results and "metadatas" in results and "distances" in results:
         for doc, metadata, score in zip(results["documents"][0], results["metadatas"][0], results["distances"][0]):
-            if score > min_score:  # Only include high-relevance results
+            if score > min_score:
                 continue
             speaker = metadata.get("speaker", "Unknown")
             retrieved_info.append(f"{speaker}: {doc}")
@@ -385,16 +366,6 @@ def get_last_n_messages():
 #####################################
 
 def generate_answer_based_on_info(speaker, user ,user_query, context,relevant_info):
-    # TODO:
-    # 1. enhance prompt (not ai)
-    # 2. be like boyfriend/girlfriend
-    # 3. name
-    # 4. good 催眠詞 (避開會被 ban 掉的關鍵字)
-
-    # 關於 prompt
-    # 1. please analyze the way this person talk ( 標點符號、tone、emoji)
-    # 2. 讀懂了 -> ai : 從現在開始，我就是 (speaker)
-    # reference https://www.reddit.com/r/ChatGPTPro/comments/1hih8s8/i_built_a_prompt_that_makes_ai_chat_like_a_real/?rdt=51837
     """
     Generate an answer based on the retrieved relevant information, aiming to provide a natural and conversational response.
     """
@@ -507,7 +478,7 @@ def main():
     - Applies the saved style to the initial answer.
     - Returns the final styled answer.
     """
-    json_path = "conversation2.json"
+    json_path = "conversation/conversation2.json"
     db_folder = "chroma_db"
     db_name = "rag_experiment"
 
@@ -548,9 +519,7 @@ def main():
             break
 
         # Step 1: Retrieve relevant information
-        # current_message_id = f"conv_{len(collection.get()['documents'])}"
-        context_pairs = get_last_n_messages()  # e.g. [(speaker, msg), (speaker2, msg2), ...]
-        # 把對話拼成文字
+        context_pairs = get_last_n_messages()  # e.g., [("user", "Hello"), ("bot", "Hi!")]
         context_texts = [f"{spk}: {msg}" for spk, msg in context_pairs]
         relevant_info = retrieve_for_info(collection, user_query, n_results=5)
 

@@ -33,7 +33,6 @@ Thumbs.db
 .env
 
 # JSON and Data Files
-*.json
 *.db
 
 # ChromaDB Files
