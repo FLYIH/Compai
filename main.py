@@ -17,22 +17,81 @@ from langchain.embeddings.base import Embeddings
 import chromadb
 from chromadb.config import Settings
 import google.generativeai as genai
-import datetime
-
+import uuid, datetime
+from collections import deque
+# source venv/bin/activate
 #####################################
 # 1. Basic Setup: Embeddings + LLM (Gemini)
 #####################################
 
+conversation_buffer = deque(maxlen=3)
+
 def get_embedding(text: str) -> list[float]:
     """
-    Uses Google Gemini to generate embeddings correctly.
+    單行版本的 get_embedding，但改用批次版本以提升效能
+    """
+    return get_embeddings_batch([text])[0]
+
+def get_embeddings_batch(texts: list[str]) -> list[list[float]]:
+    """
+    使用批次處理獲取 embeddings，減少 API 請求次數，提升速度。
     """
     gemini_api_key = "AIzaSyDTid8X9cbe_iO9soS0IfuO9OLmvToY4KU"
     genai.configure(api_key=gemini_api_key)
 
     model = "models/embedding-001"
-    response = genai.embed_content(model=model, content=text, task_type="retrieval_document", title="Embedding Query")
-    return response["embedding"]
+    responses = []
+
+    # 每次處理 10 條，避免超過 API 限制
+    batch_size = 10
+    for i in range(0, len(texts), batch_size):
+        batch = texts[i:i + batch_size]
+        # 過濾掉空字串和只有空白符號的內容
+        batch = [text for text in batch if text and text.strip()]
+
+        # 如果 batch 全部都是空的，則跳過
+        if not batch:
+            print("\n⚠️ [WARN] Empty batch encountered, skipping...")
+            continue
+
+        try:
+            response = genai.embed_content(
+                model=model,
+                content=batch,
+                task_type="retrieval_document"
+            )
+
+            # 檢查回傳格式
+            if isinstance(response, dict) and "embedding" in response:
+                embeddings = response["embedding"]
+
+                # 修正：只保留成功生成 embedding 的內容
+                valid_texts = []
+                valid_embeddings = []
+
+                # 檢查每一個 embedding
+                for idx, embedding in enumerate(embeddings):
+                    if embedding:  # 如果 embedding 不為空，則保留
+                        valid_texts.append(batch[idx])
+                        valid_embeddings.append(embedding)
+                    else:
+                        print(f"\n⚠️ [WARN] Empty embedding for text: {batch[idx]}")
+
+                # 若有任何有效的 embedding，才加入 response
+                if valid_embeddings:
+                    responses.extend(valid_embeddings)
+                else:
+                    print("\n⚠️ [WARN] No valid embeddings in this batch.")
+
+            else:
+                print("\n⚠️ [WARN] Unexpected response format:", response)
+
+        except Exception as e:
+            print("\n❌ [ERROR] Error while getting embeddings:", e)
+            print("\n⚠️ [DEBUG] Problematic batch:", batch)
+
+    return responses
+
 
 def generate_answer(prompt: str):
     """
@@ -45,7 +104,7 @@ def generate_answer(prompt: str):
         raise ValueError("Gemini API Key not provided.")
 
     genai.configure(api_key=gemini_api_key)
-    model = genai.GenerativeModel('gemini-pro')
+    model = genai.GenerativeModel('gemini-1.5-flash')
 
     safety_settings = [
         {
@@ -68,55 +127,67 @@ def generate_answer(prompt: str):
 # 2. Load JSON & Detect Speaker
 #####################################
 
-def load_conversation_json(json_path: str):
+def load_conversation_json_in_chunks(json_path: str, chunk_size=100):
     """
-    Loads conversation data from a JSON file.
+    分批讀取 JSON，減少記憶體佔用。
     """
     with open(json_path, "r", encoding="utf-8") as f:
         data = json.load(f)
-    return data
+    
+    for i in range(0, len(data), chunk_size):
+        yield data[i:i + chunk_size]
 
-def create_chroma_db(conversations, db_path, collection_name):
+def create_chroma_db(conversations, collection):
     """
-    Creates a ChromaDB collection to store conversation embeddings.
+    Batch add data from `conversations` into the existing `collection`.
+    Using UUID for doc_id and storing timestamp for sorting.
     """
-    client = chromadb.PersistentClient(path=db_path)
-
-    # Delete old collection if it exists
-    if collection_name in client.list_collections():
-        client.delete_collection(collection_name)
-        # print("\n⚠️ [DEBUG] Deleted old ChromaDB collection to store new data.")
-
-    # Create a new collection
-    collection = client.get_or_create_collection(name=collection_name)
+    batch_size = 10
+    texts, metadatas, ids, embeddings = [], [], [], []
 
     for i, row in enumerate(conversations):
-        # print(row)
-
-        # Check if row is a dictionary, then access "message", otherwise handle as a string
-        if isinstance(row, dict):  # If row is a dictionary
-            text = row.get("message")
-        else:  # If row is a string
-            text = row
-
+        text = row["message"] if isinstance(row, dict) else row
         speaker = row.get("speaker", "unknown") if isinstance(row, dict) else "unknown"
         ts = row.get("timestamp", "") if isinstance(row, dict) else ""
+        
+        if not ts:
+            ts = datetime.datetime.now().isoformat()
 
-        embedding = get_embedding(text)
+        # 使用 UUID 做 doc_id
+        doc_uuid = f"conv_{uuid.uuid4()}"
 
-        collection.add(
-            documents=[text],
-            embeddings=[embedding],
-            metadatas=[{
-                "speaker": speaker,
-                "timestamp": ts,
-                "id": f"conv_{i}"
-            }],
-            ids=[f"conv_{i}"]
-        )
+        texts.append(text)
+        ids.append(doc_uuid)
+        metadatas.append({
+            "speaker": speaker,
+            "timestamp": ts,
+            "id": doc_uuid  
+        })
 
+        # 批次執行
+        if len(texts) == batch_size or i == len(conversations) - 1:
+            batch_embeddings = get_embeddings_batch(texts)
+            filtered_texts, filtered_ids, filtered_metadatas, filtered_embeddings = [], [], [], []
+
+            for idx, emb in enumerate(batch_embeddings):
+                if emb:  # 有效 embedding
+                    filtered_texts.append(texts[idx])
+                    filtered_ids.append(ids[idx])
+                    filtered_metadatas.append(metadatas[idx])
+                    filtered_embeddings.append(emb)
+                else:
+                    print(f"\n⚠️ [WARN] Skipping text with no embedding: {texts[idx]}")
+
+            if filtered_texts:
+                collection.add(
+                    documents=filtered_texts,
+                    embeddings=filtered_embeddings,
+                    metadatas=filtered_metadatas,
+                    ids=filtered_ids
+                )
+            
+            texts, ids, metadatas, embeddings = [], [], [], []
     return collection
-
 
 #####################################
 # 3. Store New Conversations in ChromaDB Dynamically
@@ -125,9 +196,11 @@ def create_chroma_db(conversations, db_path, collection_name):
 def add_new_conversation(collection, speaker, message):
     """
     Adds a new conversation message dynamically to ChromaDB.
+    Using UUID for doc_id, timestamp for sorting.
     """
-    ts = datetime.datetime.now().isoformat()  # Generate timestamp
-    doc_id = f"conv_{len(collection.get()['documents'])}"  # Unique ID based on current count
+
+    ts = datetime.datetime.now().isoformat()
+    doc_uuid = f"conv_{uuid.uuid4()}"
     embedding = get_embedding(message)
 
     collection.add(
@@ -136,12 +209,18 @@ def add_new_conversation(collection, speaker, message):
         metadatas=[{
             "speaker": speaker,
             "timestamp": ts,
-            "id": doc_id
+            "id": doc_uuid
         }],
-        ids=[doc_id]
+        ids=[doc_uuid]
     )
 
-    # print(f"\n📥 [DEBUG] Stored new conversation (ID: {doc_id}) - Speaker: {speaker} - Message: {message}")
+    # print(f"\n[DEBUG] Stored new conversation (ID: {doc_uuid}) - Speaker: {speaker} - Message: {message}")
+
+def add_to_buffer(speaker, message):
+    """
+    Add the message to in-memory conversation buffer
+    """
+    conversation_buffer.append((speaker, message))
 
 #####################################
 # 4. Style & Info Retrieval
@@ -196,12 +275,12 @@ def extract_style_from_history(chat_history_texts):
     使用 Gemini 分析聊天記錄並提取寫作風格。
     此版本使用本地開發模式，不需要 ADC 憑證。
     """
-    gemini_api_key = "AIzaSyDTid8X9cbe_iO9soS0IfuO9OLmvToY4KU"  # 請用你的 API Key 替換
+    gemini_api_key = "AIzaSyDTid8X9cbe_iO9soS0IfuO9OLmvToY4KU"
     if not gemini_api_key:
         raise ValueError("Gemini API Key not provided.")
 
     genai.configure(api_key=gemini_api_key)
-    model = genai.GenerativeModel('gemini-pro')
+    model = genai.GenerativeModel('gemini-1.5-flash')
 
     prompt = f"""
     Analyze the following chat messages and extract the writing style.
@@ -315,40 +394,11 @@ def retrieve_for_info(collection, user_query, n_results=5, min_score=0.5):
     print("\n🔍 [DEBUG] Retrieved Info Docs:", retrieved_info)
     return retrieved_info
 
-def retrieve_context(collection, current_message_id, context_size=3):
+def get_last_n_messages():
     """
-    Retrieves context messages only before the current conversation.
-    This ensures continuity by fetching a few messages before the current one.
+    Return the conversation buffer as a list of (speaker, message)
     """
-    context_docs = []
-
-    # 獲取當前對話的 index
-    current_index = int(current_message_id.split('_')[-1])  # e.g., conv_3 -> 3
-    # print(f"\n🔍 [DEBUG] Current Index: {current_index}")
-
-    # **修正：移除 ids，改用 metadatas 中的 id**
-    all_docs = collection.get(include=["documents", "metadatas"])
-
-    # **按照 ID 排序**，並過濾出 conv_{i} 格式的對話
-    all_docs_sorted = sorted(
-        zip(all_docs['metadatas'], all_docs['documents']),
-        key=lambda x: int(x[0]['id'].split('_')[-1])
-    )
-
-    # **只往前找**，從 current_index 往前數 context_size 條訊息
-    for i in range(max(0, current_index - context_size), current_index):
-        # 過濾出 ID 為 conv_{i} 的對話
-        context = next((doc for meta, doc in all_docs_sorted if meta['id'] == f"conv_{i}"), None)
-        if context:
-            context_docs.append(context)
-
-    # **按照時間順序排列**（由舊到新）
-    context_docs.reverse()
-
-    print("\n🔍 [DEBUG] Retrieved Context Docs:", context_docs)
-    return context_docs
-
-
+    return list(conversation_buffer)
 #####################################
 # 5. Build RAG Prompt
 #####################################
@@ -369,7 +419,7 @@ def generate_answer_based_on_info(speaker, user ,user_query, context,relevant_in
     """
     context_excerpt = "\n".join(context)
     info_excerpt = "\n".join(relevant_info)
-
+    # print(f"\n🔍 [DEBUG] Context Excerpt:\n{context_excerpt}")
     prompt = f"""
     You are a conversational AI focused on engaging in authentic dialogue. Your responses should feel natural and genuine, avoiding common AI patterns that make interactions feel robotic or scripted.
     You are {speaker}, someone who truly cares about {user} and always speaks with warmth and affection.
@@ -483,15 +533,25 @@ def main():
     if not os.path.exists(db_folder):
         os.makedirs(db_folder)
 
-    # Load conversation data and create ChromaDB collection
-    conversations = load_conversation_json(json_path)
+    # 初始化 ChromaDB
     db_path = os.path.join(os.getcwd(), db_folder)
-    collection = create_chroma_db(conversations, db_path, db_name)
+    client = chromadb.PersistentClient(path=db_path)
+    
+    # 如果 collection 已存在，先刪除重建
+    if db_name in client.list_collections():
+        client.delete_collection(db_name)
+    
+    # 創建 Collection (持續更新)
+    global collection
+    collection = client.get_or_create_collection(name=db_name)
+
+    # 每個 chunk 都呼叫 populate_collection
+    for chunk in load_conversation_json_in_chunks(json_path, 100):
+        create_chroma_db(chunk, collection)
 
     # Input the speaker
     speaker = input("\n[INFO] Please input the id of speaker: ").strip()
     user = input("\n[INFO] Please input the id of you: ").strip()
-
 
     # Analyze and save the speaker's style at startup
     global SPEAKER_STYLE
@@ -506,22 +566,27 @@ def main():
             print("\nGoodbye!")
             break
 
+        add_to_buffer(user, user_query)
+        add_new_conversation(collection, user, user_query)
+
         # Step 1: Retrieve relevant information
-        current_message_id = f"conv_{len(collection.get()['documents'])}"
-        context = retrieve_context(collection, current_message_id, context_size=3)
+        # current_message_id = f"conv_{len(collection.get()['documents'])}"
+        context_pairs = get_last_n_messages()  # e.g. [(speaker, msg), (speaker2, msg2), ...]
+        # 把對話拼成文字
+        context_texts = [f"{spk}: {msg}" for spk, msg in context_pairs]
         relevant_info = retrieve_for_info(collection, user_query, n_results=5)
 
         # Step 2: Generate an initial answer based on retrieved info
-        initial_answer = generate_answer_based_on_info(speaker, user, user_query, context, relevant_info)
+        initial_answer = generate_answer_based_on_info(speaker, user, user_query, context_texts, relevant_info)
 
         # Step 3: Apply saved style for final answer
         final_answer = style_post_process(initial_answer, SPEAKER_STYLE)
-
+        
         # Step 4: Return the final styled answer
         print(f"\n{speaker}:{final_answer}")
 
         # Step 5: Store new conversations in ChromaDB
-        add_new_conversation(collection, user, user_query)
+        add_to_buffer(speaker, final_answer)
         add_new_conversation(collection, speaker, final_answer)
 
 if __name__ == "__main__":
