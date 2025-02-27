@@ -1,6 +1,6 @@
 # Gemini Chatbot with RAG and ChromaDB
 This project implements a Retrieval-Augmented Generation (RAG) chatbot using Gemini AI, ChromaDB, and Google Palm Embeddings. It aims to provide a natural and engaging conversational experience with an affectionate and emotionally resonant communication style.
-
+> [Presentation Slide](https://www.canva.com/design/DAGfoSN9y6A/i_AvmPdiUjaudQNl5wpehA/edit?utm_content=DAGfoSN9y6A&utm_campaign=designshare&utm_medium=link2&utm_source=sharebutton)
 ## Features
 #### 1. Embeddings & LLM:
 
