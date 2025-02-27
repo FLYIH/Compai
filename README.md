@@ -3,6 +3,8 @@ This project implements a Retrieval-Augmented Generation (RAG) Chatbot using Gem
 
 ---
 
+> [Presentation Slide](https://www.canva.com/design/DAGfoSN9y6A/i_AvmPdiUjaudQNl5wpehA/edit?utm_content=DAGfoSN9y6A&utm_campaign=designshare&utm_medium=link2&utm_source=sharebutton)
+
 ## Features
 #### 1. Embeddings & LLM:
 
