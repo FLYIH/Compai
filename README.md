@@ -104,5 +104,3 @@ python main.py
 
     - The chatbot will respond with context-aware and emotionally resonant replies.
 
-- End the conversation: Type exit.
-
