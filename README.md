@@ -1,5 +1,7 @@
 # Gemini Chatbot with RAG and ChromaDB
-This project implements a Retrieval-Augmented Generation (RAG) chatbot using Gemini AI, ChromaDB, and Google Palm Embeddings. It aims to provide a natural and engaging conversational experience with an affectionate and emotionally resonant communication style.
+This project implements a Retrieval-Augmented Generation (RAG) Chatbot using Gemini AI, ChromaDB, and Google Palm Embeddings, integrated seamlessly with Telegram Bot. It provides a natural and engaging conversational experience with an affectionate and emotionally resonant communication style, making it feel like a caring conversational partner.
+
+---
 
 ## Features
 #### 1. Embeddings & LLM:
@@ -26,6 +28,14 @@ This project implements a Retrieval-Augmented Generation (RAG) chatbot using Gem
 
 - Generates warm and affectionate answers, making the chatbot feel like a caring conversational partner.
 - Mimics conversational patterns and emotional tones based on the speaker's historical messages.
+
+#### 6. Telegram Integration:
+
+Seamlessly integrates with Telegram Bot for user-friendly input and output.
+
+Allows easy configuration of speaker and user roles using /setspeaker and /setuser commands.
+
+Real-time messaging with continuous context-awareness.
 
 ## How It Works
 #### 1. Load Conversation History:
@@ -58,12 +68,18 @@ source venv/bin/activate  # On Windows: venv\Scripts\activate
 ```
 pip install -r requirements.txt
 ```
-
 ## API Key Setup
-This project uses Google Gemini API. Obtain your API key and create a ``.env`` file in the root directory:
-```
-GEMINI_API_KEY=your_gemini_api_key_here
-```
+This project uses Google Gemini API and Telegram Bot Token for seamless integration.
+
+- Gemini API Key: Obtain from Google Cloud.
+
+- Telegram Bot Token: Create a bot using BotFather on Telegram.
+
+- create a ``.env`` file in the root directory:
+    ```
+    GEMINI_API_KEY=your_gemini_api_key_here
+    TG_BOT_TOKEN=your_telegram_bot_token_here
+    ```
 
 ## Running the Chatbot
 #### 1. Activate the virtual environment:
@@ -74,6 +90,17 @@ source venv/bin/activate
 ```
 python main.py
 ```
-#### 3. Input the speaker and user IDs when prompted.
-#### 4. Type in user queries to interact with the chatbot.
-#### 5. Type exit to end the conversation.
+#### 3. Interact with the Chatbot on Telegram:
+
+- Set the Speaker and User IDs:
+    ```
+    /setspeaker <speaker_id>
+    /setuser <user_id>
+    ```
+- Start chatting:
+    - Type your message to initiate a conversation.
+
+    - The chatbot will respond with context-aware and emotionally resonant replies.
+
+- End the conversation: Type exit.
+
