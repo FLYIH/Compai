@@ -7,3 +7,4 @@ jq>=1.0.0
 langchain-core>=0.0.5
 orjson>=3.8.5
 langchain-google-genai>=0.0.5
+telebot
