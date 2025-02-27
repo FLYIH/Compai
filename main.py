@@ -18,7 +18,7 @@ bot = telebot.TeleBot(TELEGRAM_TOKEN, parse_mode=None)
 
 # === 狀態管理 ===
 global conversation_buffer
-conversation_buffer = deque(maxlen=3)
+conversation_buffer = deque(maxlen=5)
 SPEAKER_ID = None
 USER_ID = None
 SPEAKER_STYLE = {}
@@ -42,19 +42,28 @@ def get_started(message):
 
 @bot.message_handler(commands=['setspeaker'])
 def set_speaker(message):
-    global SPEAKER_ID
+    global SPEAKER_ID, USER_ID, SPEAKER_STYLE
     try:
         SPEAKER_ID = message.text.split(" ")[1]
         bot.send_message(message.chat.id, f"Speaker ID set to {SPEAKER_ID}")
+        if SPEAKER_ID and USER_ID:
+            bot.send_message(message.chat.id, "Analyzing speaker style... Please wait a moment. 💕")
+            SPEAKER_STYLE = analyze_speaker_style(collection, SPEAKER_ID)
+            bot.send_message(message.chat.id, "Speaker style analysis complete! 🎉")
     except IndexError:
         bot.send_message(message.chat.id, "Please provide a speaker ID. Usage: /setspeaker <id>")
 
 @bot.message_handler(commands=['setuser'])
 def set_user(message):
-    global USER_ID
+    global SPEAKER_ID, USER_ID, SPEAKER_STYLE
     try:
         USER_ID = message.text.split(" ")[1]
         bot.send_message(message.chat.id, f"User ID set to {USER_ID}")
+        if SPEAKER_ID and USER_ID:
+            bot.send_message(message.chat.id, "Analyzing speaker style... Please wait a moment. 💕")
+            SPEAKER_STYLE = analyze_speaker_style(collection, SPEAKER_ID)
+            bot.send_message(message.chat.id, "Speaker style analysis complete! 🎉")
+            return
     except IndexError:
         bot.send_message(message.chat.id, "Please provide a user ID. Usage: /setuser <id>")
 
@@ -62,23 +71,17 @@ def set_user(message):
 def send_welcome(message):
     bot.reply_to(message, "Use /setspeaker and /setuser to set the conversation roles.\nThen just type your message to start chatting!")
 
-# === 主要訊息處理邏輯 ===
+# === main logic ===
 @bot.message_handler(func=lambda message: True)
 def handle_message(message):
-    global SPEAKER_ID, USER_ID
-    global SPEAKER_STYLE
     if not SPEAKER_ID or not USER_ID:
         bot.send_message(message.chat.id, "Please set both speaker and user IDs using /setspeaker and /setuser.")
         return
 
-    if not SPEAKER_STYLE:
-        bot.send_message(message.chat.id, "Analyzing speaker style... Please wait a moment. 💕")
-        SPEAKER_STYLE = analyze_speaker_style(collection, SPEAKER_ID)
-        return 
     user_query = message.text
-    if user_query.lower() == "exit":
-        bot.send_message(message.chat.id, "Goodbye! 👋")
-        return
+    # if user_query.lower() == "exit":
+        # bot.send_message(message.chat.id, "Goodbye! 👋")
+        # return
 
 
     add_to_buffer(USER_ID, user_query, conversation_buffer)

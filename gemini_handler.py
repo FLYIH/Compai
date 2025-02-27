@@ -5,8 +5,6 @@ import google.generativeai as genai
 from datetime import datetime
 import uuid
 
-
-
 # === Buffer 與 ChromaDB 操作函式 ===
 def get_embedding(text: str) -> list[float]:
     return get_embeddings_batch([text])[0]

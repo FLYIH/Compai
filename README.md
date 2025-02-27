@@ -46,7 +46,7 @@ This project implements a Retrieval-Augmented Generation (RAG) chatbot using Gem
 ## Installation
 #### 1. Clone the repository:
 ```
-git clone https://github.com/FLYIH/Companion-bot.git
+git clone https://github.com/FLYIH/Compai.git
 cd Compai
 ```
 #### 2. Create a virtual environment:

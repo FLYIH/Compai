@@ -57,3 +57,4 @@ __debug__/
 *.bak
 *.tmp
 *.old
+answer_generate.py
