@@ -2,18 +2,26 @@ import os
 import re
 import orjson
 from dotenv import load_dotenv
-import telebot
-from datetime import datetime
+from langchain.embeddings import GooglePalmEmbeddings
+from langchain_community.embeddings import GooglePalmEmbeddings
+from langchain.chains import LLMChain
+from langchain.prompts import PromptTemplate
+from langchain.embeddings.base import Embeddings
+import chromadb
+from chromadb.config import Settings
+import google.generativeai as genai
+import uuid, datetime
 from collections import deque
 
-# === Gemini Imports ===
-import google.generativeai as genai
-from chromadb.config import Settings
-import chromadb
-import uuid
+#####################################
+# 1. Basic Setup: Embeddings + LLM (Gemini)
+#####################################
+load_dotenv()
 
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+genai.configure(api_key=GEMINI_API_KEY)
+conversation_buffer = deque(maxlen=3)
 
-# === Buffer 與 ChromaDB 操作函式 ===
 def get_embedding(text: str) -> list[float]:
     return get_embeddings_batch([text])[0]
 
@@ -123,7 +131,7 @@ def create_chroma_db(conversations, collection):
         ts = row.get("timestamp", "") if isinstance(row, dict) else ""
         
         if not ts:
-            ts = datetime.now().isoformat()
+            ts = datetime.datetime.now().isoformat()
 
         doc_uuid = f"conv_{uuid.uuid4()}"
 
@@ -169,7 +177,7 @@ def add_new_conversation(collection, speaker, message):
     Using UUID for doc_id, timestamp for sorting.
     """
 
-    ts = datetime.now().isoformat()
+    ts = datetime.datetime.now().isoformat()
     doc_uuid = f"conv_{uuid.uuid4()}"
     embedding = get_embedding(message)
 
@@ -195,6 +203,9 @@ def add_to_buffer(speaker, message):
 #####################################
 # 4. Style & Info Retrieval
 #####################################
+
+# Global variable to store speaker's style
+SPEAKER_STYLE = {}
 
 def analyze_speaker_style(collection, speaker, n_results=10):
     """
@@ -318,6 +329,68 @@ def extract_style_from_history(chat_history_texts):
             "frequent_words": [],
             "punctuation_style": "standard"
         }
+
+def detect_and_update_memory(user, user_query):
+    """
+    Detects and automatically updates user memory.
+    """
+    # Detect age
+    age_pattern = re.findall(r"I am (\d{1,2}) years? old", user_query, re.IGNORECASE)
+    if age_pattern:
+        age = age_pattern[0]
+        add_or_update_memory(user, "age", age)
+    
+    # Detect likes
+    like_pattern = re.findall(r"I like (.+?)", user_query, re.IGNORECASE)
+    if like_pattern:
+        for like in like_pattern:
+            add_or_update_memory(user, "like", like)
+    
+    # Detect dislikes for starting phrases
+    dislike_pattern = re.findall(r"Don't start with '(.*?)'", user_query, re.IGNORECASE)
+    if dislike_pattern:
+        for start in dislike_pattern:
+            add_or_update_memory(user, "avoid_start", start)
+    
+    # Detect personal background information (e.g., job, nationality, residence)
+    background_patterns = {
+        "job": r"I am a (.+?)",                   # Example: I am a software engineer
+        "nationality": r"I am from (.+?)",         # Example: I am from Japan
+        "residence": r"I live in (.+?)"            # Example: I live in New York
+    }
+    for key, pattern in background_patterns.items():
+        match = re.findall(pattern, user_query, re.IGNORECASE)
+        if match:
+            add_or_update_memory(user, key, match[0])
+
+
+def add_or_update_memory(user, key, value):
+    """
+    新增或更新使用者記憶
+    """
+    existing_memories = memory_collection.get(where={"user": user, "key": key})
+
+    if existing_memories["documents"]:
+        # 刪除舊有記憶
+        doc_id = existing_memories["metadatas"][0]["id"]
+        memory_collection.delete(where={"id": doc_id})
+
+    # 新增新的記憶
+    doc_uuid = f"mem_{uuid.uuid4()}"
+    embedding = get_embedding(f"{key}:{value}")
+    memory_collection.add(
+        documents=[f"{key}:{value}"],
+        embeddings=[embedding],
+        metadatas=[{
+            "user": user,
+            "key": key,
+            "value": value,
+            "id": doc_uuid
+        }],
+        ids=[doc_uuid]
+    )
+    print(f"✅ [INFO] 新增或更新記憶 - {key}: {value}")
+
 
 def get_user_memory(user):
     """
@@ -497,103 +570,84 @@ def style_post_process(initial_answer, speaker_style):
 
     return generate_answer(prompt)
 
+#####################################
+# 6. Main Execution Flow
+#####################################
 
-# === 初始化設定 ===
-load_dotenv()
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
-TELEGRAM_TOKEN = os.getenv("TG_BOT_TOKEN")
+def main():
+    """
+    Main chatbot workflow:
+    - Analyzes and saves the speaker's style at startup.
+    - Retrieves relevant information for each user query.
+    - Generates an initial answer based on the retrieved info.
+    - Applies the saved style to the initial answer.
+    - Returns the final styled answer.
+    """
+    json_path = "conversation/conversation2.json"
+    db_folder = "chroma_db"
+    db_name = "rag_experiment"
 
-genai.configure(api_key=GEMINI_API_KEY)
-bot = telebot.TeleBot(TELEGRAM_TOKEN, parse_mode=None)
+    if not os.path.exists(db_folder):
+        os.makedirs(db_folder)
 
-# === 狀態管理 ===
-conversation_buffer = deque(maxlen=3)
-SPEAKER_ID = None
-USER_ID = None
-SPEAKER_STYLE = {}
+    # 初始化 ChromaDB
+    db_path = os.path.join(os.getcwd(), db_folder)
+    client = chromadb.PersistentClient(path=db_path)
+    
+    # 如果 collection 已存在，先刪除重建
+    if db_name in client.list_collections():
+        client.delete_collection(db_name)
+    
+    # 創建 Collection (持續更新)
+    global collection
+    collection = client.get_or_create_collection(name=db_name)
 
-# === ChromaDB 初始化 ===
-json_path = "conversation/conversation2.json"
-db_folder = "chroma_db"
-db_name = "rag_experiment"
-if not os.path.exists(db_folder):
-    os.makedirs(db_folder)
+    # 創建專門用於儲存使用者資訊的 Collection
+    global memory_collection
+    memory_collection = client.get_or_create_collection(name="user_memory")
 
-db_path = os.path.join(os.getcwd(), db_folder)
-client = chromadb.PersistentClient(path=db_path)
-
-# 如果 collection 已存在，先刪除重建
-if db_name in client.list_collections():
-    client.delete_collection(db_name)
-
-collection = client.get_or_create_collection(name=db_name)
-for chunk in load_conversation_json_in_chunks(json_path, 100):
+    # 每個 chunk 都呼叫 populate_collection
+    for chunk in load_conversation_json_in_chunks(json_path, 100):
         create_chroma_db(chunk, collection)
 
-# === Telegram Bot 指令處理 ===
+    # Input the speaker
+    speaker = input("\n[INFO] Please input the id of speaker: ").strip()
+    user = input("\n[INFO] Please input the id of you: ").strip()
 
-@bot.message_handler(commands=['start'])
-def get_started(message):
-    bot.send_message(message.chat.id, "Hello! I am Compai! 💕\nPlease use \"/setspeaker <id>\" and \"/setuser <id>\" to input the id of speaker and user.")
-
-@bot.message_handler(commands=['setspeaker'])
-def set_speaker(message):
-    global SPEAKER_ID
-    try:
-        SPEAKER_ID = message.text.split(" ")[1]
-        bot.send_message(message.chat.id, f"Speaker ID set to {SPEAKER_ID}")
-    except IndexError:
-        bot.send_message(message.chat.id, "Please provide a speaker ID. Usage: /setspeaker <id>")
-
-@bot.message_handler(commands=['setuser'])
-def set_user(message):
-    global USER_ID
-    try:
-        USER_ID = message.text.split(" ")[1]
-        bot.send_message(message.chat.id, f"User ID set to {USER_ID}")
-    except IndexError:
-        bot.send_message(message.chat.id, "Please provide a user ID. Usage: /setuser <id>")
-
-@bot.message_handler(commands=['help'])
-def send_welcome(message):
-    bot.reply_to(message, "Use /setspeaker and /setuser to set the conversation roles.\nThen just type your message to start chatting!")
-# === 主要訊息處理邏輯 ===
-@bot.message_handler(func=lambda message: True)
-def handle_message(message):
-    global SPEAKER_ID, USER_ID
+    # Analyze and save the speaker's style at startup
     global SPEAKER_STYLE
-    if not SPEAKER_ID or not USER_ID:
-        bot.send_message(message.chat.id, "Please set both speaker and user IDs using /setspeaker and /setuser.")
-        return
+    SPEAKER_STYLE = analyze_speaker_style(collection, speaker)
 
-    if not SPEAKER_STYLE:
-        SPEAKER_STYLE = analyze_speaker_style(collection, SPEAKER_ID)
-        bot.send_message(message.chat.id, "Analyzing speaker style... Please wait a moment. 💕")
-        return  # 初始化後先跳出，下一次進入迴圈才會開始對話
+    print("\n=== Chatbot Ready! Type 'exit' to quit ===\n")
 
-    user_query = message.text
-    if user_query.lower() == "exit":
-        bot.send_message(message.chat.id, "Goodbye! 👋")
-        return
+    while True:
+        # Get user input
+        user_query = input(f"\n{user}: ")
+        if user_query.lower() == "exit":
+            print("\nGoodbye!")
+            break
 
+        # Step 1: Retrieve relevant information
+        context_pairs = get_last_n_messages()  # e.g., [("user", "Hello"), ("bot", "Hi!")]
+        context_texts = [f"{spk}: {msg}" for spk, msg in context_pairs]
+        relevant_info = retrieve_for_info(collection, user_query, n_results=5)
 
-    add_to_buffer(USER_ID, user_query)
-    add_new_conversation(collection, USER_ID, user_query)
+        # Step 2: Generate an initial answer based on retrieved info
+        detect_and_update_memory(user, user_query)
+        prompt = generate_answer_based_on_info(speaker, user, user_query, context_texts, relevant_info)
+        initial_answer = apply_memory_to_prompt(prompt, user)
 
-    context_pairs = get_last_n_messages()
-    context_texts = [f"{spk}: {msg}" for spk, msg in context_pairs]
-    relevant_info = retrieve_for_info(collection, user_query, n_results=5)
-
-    # 生成 Gemini 回應
-    try:
-        initial_answer = generate_answer_based_on_info(SPEAKER_ID, USER_ID, user_query, context_texts, relevant_info)
+        # Step 3: Apply saved style for final answer
         final_answer = style_post_process(initial_answer, SPEAKER_STYLE)
-        bot.send_message(message.chat.id, initial_answer)
-        add_to_buffer(SPEAKER_ID, initial_answer)
-        add_new_conversation(collection, SPEAKER_ID, initial_answer)
-    except Exception as e:
-        bot.send_message(message.chat.id, f"An error occurred: {e}")
+        
+        # Step 4: Return the final styled answer
+        print(f"\n{speaker}:{final_answer}")
 
+        # Step 5: Store new conversations in ChromaDB
+        add_to_buffer(user, user_query)
+        add_new_conversation(collection, user, user_query)
+        add_to_buffer(speaker, final_answer)
+        add_new_conversation(collection, speaker, final_answer)
 
-# 啟動 Telegram Bot
-bot.infinity_polling()
+if __name__ == "__main__":
+    main()
