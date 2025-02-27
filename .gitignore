@@ -38,6 +38,8 @@ Thumbs.db
 # ChromaDB Files
 chroma_db/
 
+history_file/
+
 # Cache
 .cache/
 *.cache
