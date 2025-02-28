@@ -68,7 +68,7 @@ def command_handle_document(message):
     Handle the uploaded chat history JSON file.
     Parse it, convert the format, and analyze the speaker style.
     """
-    global CHAT_HISTORY, SPEAKER_ID, USER_ID, SPEAKER_STYLE, collection  # Declare global variables
+    global CHAT_HISTORY, SPEAKER_ID, USER_ID, SPEAKER_STYLE  # Declare global variables
 
     file_name = message.document.file_name
     bot.send_message(message.chat.id, f"Received document: {file_name}")
