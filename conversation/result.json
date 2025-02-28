@@ -1,0 +1,489 @@
+{
+ "name": "Elaine",
+ "type": "personal_chat",
+ "id": 7323262592,
+ "messages": [
+  {
+   "id": 513,
+   "type": "message",
+   "date": "2024-09-10T14:56:37",
+   "date_unixtime": "1725951397",
+   "from": "Elaine",
+   "from_id": "user7323262592",
+   "text": "Hi",
+   "text_entities": [
+    {
+     "type": "plain",
+     "text": "Hi"
+    }
+   ]
+  },
+  {
+   "id": 514,
+   "type": "message",
+   "date": "2024-09-10T14:57:01",
+   "date_unixtime": "1725951421",
+   "from": "Elaine",
+   "from_id": "user7323262592",
+   "file": "(File not included. Change data exporting settings to download.)",
+   "file_name": "AnimatedSticker.tgs",
+   "file_size": 10659,
+   "thumbnail": "(File not included. Change data exporting settings to download.)",
+   "thumbnail_file_size": 5126,
+   "media_type": "sticker",
+   "sticker_emoji": "👌",
+   "mime_type": "application/x-tgsticker",
+   "width": 512,
+   "height": 512,
+   "text": "",
+   "text_entities": []
+  },
+  {
+   "id": 517,
+   "type": "message",
+   "date": "2024-09-10T15:06:18",
+   "date_unixtime": "1725951978",
+   "from": "Kiki",
+   "from_id": "user7089287915",
+   "text": "Hello, my friend.",
+   "text_entities": [
+    {
+     "type": "plain",
+     "text": "Hello, my friend."
+    }
+   ]
+  },
+  {
+   "id": 520,
+   "type": "message",
+   "date": "2024-09-10T15:07:40",
+   "date_unixtime": "1725952060",
+   "from": "Elaine",
+   "from_id": "user7323262592",
+   "text": "Good afternoon, i want to sleep",
+   "text_entities": [
+    {
+     "type": "plain",
+     "text": "Good afternoon, i want to sleep"
+    }
+   ]
+  },
+  {
+   "id": 522,
+   "type": "message",
+   "date": "2024-09-10T15:07:51",
+   "date_unixtime": "1725952071",
+   "from": "Elaine",
+   "from_id": "user7323262592",
+   "text": "🥱",
+   "text_entities": [
+    {
+     "type": "plain",
+     "text": "🥱"
+    }
+   ]
+  },
+  {
+   "id": 524,
+   "type": "message",
+   "date": "2024-09-10T15:08:34",
+   "date_unixtime": "1725952114",
+   "from": "Kiki",
+   "from_id": "user7089287915",
+   "text": "Is there anything new to you?",
+   "text_entities": [
+    {
+     "type": "plain",
+     "text": "Is there anything new to you?"
+    }
+   ]
+  },
+  {
+   "id": 525,
+   "type": "message",
+   "date": "2024-09-10T15:08:37",
+   "date_unixtime": "1725952117",
+   "from": "Kiki",
+   "from_id": "user7089287915",
+   "text": "Difficult?",
+   "text_entities": [
+    {
+     "type": "plain",
+     "text": "Difficult?"
+    }
+   ]
+  },
+  {
+   "id": 526,
+   "type": "message",
+   "date": "2024-09-10T15:08:41",
+   "date_unixtime": "1725952121",
+   "from": "Elaine",
+   "from_id": "user7323262592",
+   "text": "Oh",
+   "text_entities": [
+    {
+     "type": "plain",
+     "text": "Oh"
+    }
+   ]
+  },
+  {
+   "id": 527,
+   "type": "message",
+   "date": "2024-09-10T15:08:52",
+   "date_unixtime": "1725952132",
+   "from": "Elaine",
+   "from_id": "user7323262592",
+   "text": "I'm not listening",
+   "text_entities": [
+    {
+     "type": "plain",
+     "text": "I'm not listening"
+    }
+   ]
+  },
+  {
+   "id": 528,
+   "type": "message",
+   "date": "2024-09-10T15:08:58",
+   "date_unixtime": "1725952138",
+   "from": "Kiki",
+   "from_id": "user7089287915",
+   "text": "LOL",
+   "text_entities": [
+    {
+     "type": "plain",
+     "text": "LOL"
+    }
+   ]
+  },
+  {
+   "id": 529,
+   "type": "message",
+   "date": "2024-09-10T15:09:08",
+   "date_unixtime": "1725952148",
+   "from": "Elaine",
+   "from_id": "user7323262592",
+   "text": "😁😜😜😜",
+   "text_entities": [
+    {
+     "type": "plain",
+     "text": "😁😜😜😜"
+    }
+   ]
+  },
+  {
+   "id": 532,
+   "type": "message",
+   "date": "2024-09-10T15:09:36",
+   "date_unixtime": "1725952176",
+   "from": "Kiki",
+   "from_id": "user7089287915",
+   "text": "I can't found a study room in library.",
+   "text_entities": [
+    {
+     "type": "plain",
+     "text": "I can't found a study room in library."
+    }
+   ]
+  },
+  {
+   "id": 533,
+   "type": "message",
+   "date": "2024-09-10T15:09:45",
+   "date_unixtime": "1725952185",
+   "from": "Kiki",
+   "from_id": "user7089287915",
+   "text": "every one is so curly",
+   "text_entities": [
+    {
+     "type": "plain",
+     "text": "every one is so curly"
+    }
+   ]
+  },
+  {
+   "id": 535,
+   "type": "message",
+   "date": "2024-09-10T15:10:10",
+   "date_unixtime": "1725952210",
+   "from": "Elaine",
+   "from_id": "user7323262592",
+   "text": "Oops",
+   "text_entities": [
+    {
+     "type": "plain",
+     "text": "Oops"
+    }
+   ]
+  },
+  {
+   "id": 536,
+   "type": "message",
+   "date": "2024-09-10T15:10:13",
+   "date_unixtime": "1725952213",
+   "from": "Elaine",
+   "from_id": "user7323262592",
+   "text": "Sad",
+   "text_entities": [
+    {
+     "type": "plain",
+     "text": "Sad"
+    }
+   ]
+  },
+  {
+   "id": 539,
+   "type": "message",
+   "date": "2024-09-10T15:10:28",
+   "date_unixtime": "1725952228",
+   "from": "Elaine",
+   "from_id": "user7323262592",
+   "text": "I will go back to dorm",
+   "text_entities": [
+    {
+     "type": "plain",
+     "text": "I will go back to dorm"
+    }
+   ]
+  },
+  {
+   "id": 540,
+   "type": "message",
+   "date": "2024-09-10T15:10:31",
+   "date_unixtime": "1725952231",
+   "from": "Elaine",
+   "from_id": "user7323262592",
+   "text": "I think",
+   "text_entities": [
+    {
+     "type": "plain",
+     "text": "I think"
+    }
+   ]
+  },
+  {
+   "id": 542,
+   "type": "message",
+   "date": "2024-09-10T15:10:50",
+   "date_unixtime": "1725952250",
+   "from": "Kiki",
+   "from_id": "user7089287915",
+   "text": "good choice",
+   "text_entities": [
+    {
+     "type": "plain",
+     "text": "good choice"
+    }
+   ]
+  },
+  {
+   "id": 543,
+   "type": "message",
+   "date": "2024-09-10T15:10:55",
+   "date_unixtime": "1725952255",
+   "from": "Kiki",
+   "from_id": "user7089287915",
+   "text": "so many students!!!",
+   "text_entities": [
+    {
+     "type": "plain",
+     "text": "so many students!!!"
+    }
+   ]
+  },
+  {
+   "id": 544,
+   "type": "message",
+   "date": "2024-09-10T15:10:57",
+   "date_unixtime": "1725952257",
+   "from": "Kiki",
+   "from_id": "user7089287915",
+   "text": "🙁",
+   "text_entities": [
+    {
+     "type": "plain",
+     "text": "🙁"
+    }
+   ]
+  },
+  {
+   "id": 551,
+   "type": "message",
+   "date": "2024-09-10T15:16:57",
+   "date_unixtime": "1725952617",
+   "from": "Elaine",
+   "from_id": "user7323262592",
+   "text": "the semester just started a week ago",
+   "text_entities": [
+    {
+     "type": "plain",
+     "text": "the semester just started a week ago"
+    }
+   ]
+  },
+  {
+   "id": 565,
+   "type": "message",
+   "date": "2024-09-10T15:18:51",
+   "date_unixtime": "1725952731",
+   "from": "Kiki",
+   "from_id": "user7089287915",
+   "text": "I don't know.",
+   "text_entities": [
+    {
+     "type": "plain",
+     "text": "I don't know."
+    }
+   ]
+  },
+  {
+   "id": 566,
+   "type": "message",
+   "date": "2024-09-10T15:19:10",
+   "date_unixtime": "1725952750",
+   "from": "Kiki",
+   "from_id": "user7089287915",
+   "text": "I think library should have membership system.",
+   "text_entities": [
+    {
+     "type": "plain",
+     "text": "I think library should have membership system."
+    }
+   ]
+  },
+  {
+   "id": 567,
+   "type": "message",
+   "date": "2024-09-10T15:19:41",
+   "date_unixtime": "1725952781",
+   "from": "Elaine",
+   "from_id": "user7323262592",
+   "text": "But it may cost money",
+   "text_entities": [
+    {
+     "type": "plain",
+     "text": "But it may cost money"
+    }
+   ]
+  },
+  {
+   "id": 568,
+   "type": "message",
+   "date": "2024-09-10T15:19:42",
+   "date_unixtime": "1725952782",
+   "from": "Kiki",
+   "from_id": "user7089287915",
+   "text": "I would be the dimond royal member (for staying there long time)",
+   "text_entities": [
+    {
+     "type": "plain",
+     "text": "I would be the dimond royal member (for staying there long time)"
+    }
+   ]
+  },
+  {
+   "id": 569,
+   "type": "message",
+   "date": "2024-09-10T15:19:49",
+   "date_unixtime": "1725952789",
+   "from": "Elaine",
+   "from_id": "user7323262592",
+   "text": "Ha",
+   "text_entities": [
+    {
+     "type": "plain",
+     "text": "Ha"
+    }
+   ]
+  },
+  {
+   "id": 891,
+   "type": "message",
+   "date": "2024-11-07T22:54:43",
+   "date_unixtime": "1730991283",
+   "from": "Kiki",
+   "from_id": "user7089287915",
+   "file": "(File not included. Change data exporting settings to download.)",
+   "file_name": "ass4cli24.c",
+   "file_size": 8435,
+   "mime_type": "text/x-c",
+   "text": "",
+   "text_entities": []
+  },
+  {
+   "id": 892,
+   "type": "message",
+   "date": "2024-11-07T23:17:34",
+   "date_unixtime": "1730992654",
+   "from": "Kiki",
+   "from_id": "user7089287915",
+   "text": "(base) lioukiki@liudeMacBook-Pro-2 tcpcliserv % make ass4cli24\ngcc -I../lib -g -O2 -D_REENTRANT -Wall   -c -o ass4cli24.o ass4cli24.c\ngcc -I../lib -g -O2 -D_REENTRANT -Wall -o ass4cli24 ass4cli24.o ../libunp.a -lresolv -lpthread",
+   "text_entities": [
+    {
+     "type": "plain",
+     "text": "(base) lioukiki@liudeMacBook-Pro-2 tcpcliserv % make ass4cli24\ngcc -I../lib -g -O2 -D_REENTRANT -Wall   -c -o ass4cli24.o ass4cli24.c\ngcc -I../lib -g -O2 -D_REENTRANT -Wall -o ass4cli24 ass4cli24.o ../libunp.a -lresolv -lpthread"
+    }
+   ]
+  },
+  {
+   "id": 893,
+   "type": "message",
+   "date": "2024-11-07T23:24:18",
+   "date_unixtime": "1730993058",
+   "from": "Kiki",
+   "from_id": "user7089287915",
+   "file": "(File not included. Change data exporting settings to download.)",
+   "file_name": "unpv13e.zip",
+   "file_size": 1427822,
+   "mime_type": "application/zip",
+   "text": "",
+   "text_entities": []
+  },
+  {
+   "id": 894,
+   "type": "message",
+   "date": "2024-11-07T23:35:04",
+   "date_unixtime": "1730993704",
+   "from": "Elaine",
+   "from_id": "user7323262592",
+   "file": "(File not included. Change data exporting settings to download.)",
+   "file_name": "unpv13e.zip",
+   "file_size": 2033007,
+   "mime_type": "application/zip",
+   "text": "",
+   "text_entities": []
+  },
+  {
+   "id": 895,
+   "type": "message",
+   "date": "2024-11-07T23:50:02",
+   "date_unixtime": "1730994602",
+   "from": "Elaine",
+   "from_id": "user7323262592",
+   "file": "(File not included. Change data exporting settings to download.)",
+   "file_name": "unpv13e.zip",
+   "file_size": 2079418,
+   "mime_type": "application/zip",
+   "text": "",
+   "text_entities": []
+  },
+  {
+   "id": 1155,
+   "type": "message",
+   "date": "2024-12-12T14:40:59",
+   "date_unixtime": "1733985659",
+   "from": "Elaine",
+   "from_id": "user7323262592",
+   "file": "(File not included. Change data exporting settings to download.)",
+   "file_name": "Algorithm Final (1).pdf",
+   "file_size": 4862318,
+   "thumbnail": "(File not included. Change data exporting settings to download.)",
+   "thumbnail_file_size": 20005,
+   "mime_type": "application/pdf",
+   "text": "",
+   "text_entities": []
+  }
+ ]
+}

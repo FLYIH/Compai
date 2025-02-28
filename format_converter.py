@@ -2,13 +2,21 @@ import json
 import os
 
 class TelegramChatConverter:
-    global SPEAKER_ID
+    global SPEAKER_ID, USER_ID
     def __init__(self, input_file, output_file):
         """
         Initialize with input and output file paths.
         """
         self.input_file = input_file
         self.output_file = output_file
+
+    def getSPEAKER_ID(self):
+        global SPEAKER_ID
+        return SPEAKER_ID
+    
+    def getUSER_ID(self):
+        global USER_ID
+        return USER_ID
 
     def load_json_file(self):
         """
@@ -28,6 +36,7 @@ class TelegramChatConverter:
         Convert the Telegram JSON format to simplified conversation format.
         Returns a list of simplified conversation dictionaries.
         """
+        global SPEAKER_ID, USER_ID
         simplified_conversations = []
 
         # Check if 'messages' key exists in the data
@@ -43,7 +52,9 @@ class TelegramChatConverter:
                         "message": msg.get("text", ""),
                         "timestamp": msg.get("date", "")
                     })
-
+                    if msg.get("from", "Unknown") != SPEAKER_ID and SPEAKER_ID != "Unknown":
+                        USER_ID = msg.get("from", "Unknown")
+ 
         return simplified_conversations
 
     def save_to_json(self, data):
@@ -72,6 +83,4 @@ class TelegramChatConverter:
         converted_data = self.convert_format(data)
         
         self.save_to_json(converted_data)
-
-        return SPEAKER_ID
 
