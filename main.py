@@ -6,7 +6,7 @@ import google.generativeai as genai
 from chromadb.config import Settings
 import chromadb
 from collections import deque
-from gemini_handler import generate_answer, add_new_conversation, retrieve_for_info, get_last_n_messages, generate_answer_based_on_info, style_post_process, analyze_speaker_style, add_to_buffer
+from gemini_handler import generate_answer, add_new_conversation, retrieve_for_info, get_last_n_messages, generate_answer_based_on_info, style_post_process, analyze_speaker_style, add_to_buffer, auto_update_memory, apply_memory_to_prompt, load_conversation_json_in_chunks, create_chroma_db
 
 # === 初始化設定 ===
 load_dotenv()
@@ -24,6 +24,7 @@ USER_ID = None
 SPEAKER_STYLE = {}
 
 # === ChromaDB 初始化 ===
+json_path = "conversation/conversation2.json"
 db_folder = "chroma_db"
 db_name = "rag_experiment"
 if not os.path.exists(db_folder):
@@ -31,8 +32,21 @@ if not os.path.exists(db_folder):
 db_path = os.path.join(os.getcwd(), db_folder)
 client = chromadb.PersistentClient(path=db_path)
 
+
+if db_name in client.list_collections():
+    client.delete_collection(db_name)
+
 global collection
 collection = client.get_or_create_collection(name=db_name)
+
+if("user_memory" in client.list_collections()):
+    client.delete_collection("user_memory")
+
+global memory_collection
+memory_collection = client.get_or_create_collection(name="user_memory")
+# clear_memory_collection(memory_collection, client)
+for chunk in load_conversation_json_in_chunks(json_path, 100):
+    create_chroma_db(chunk, collection)
 
 # === Telegram Bot 指令處理 ===
 
@@ -91,9 +105,13 @@ def handle_message(message):
     context_texts = [f"{spk}: {msg}" for spk, msg in context_pairs]
     relevant_info = retrieve_for_info(collection, user_query, n_results=5)
 
+
+    # auto_update_memory(USER_ID, user_query, context_texts, memory_collection)
+
     # 生成 Gemini 回應
     try:
         initial_answer = generate_answer_based_on_info(SPEAKER_ID, USER_ID, user_query, context_texts, relevant_info)
+        # initial_answer = apply_memory_to_prompt(initial_answer, USER_ID, memory_collection)
         final_answer = style_post_process(initial_answer, SPEAKER_STYLE)
         bot.send_message(message.chat.id, final_answer)
         add_to_buffer(SPEAKER_ID, initial_answer,conversation_buffer)
