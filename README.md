@@ -1,4 +1,4 @@
-# Gemini Chatbot with RAG and ChromaDB
+# Compai - Companion Chatbot
 This project implements a Retrieval-Augmented Generation (RAG) Chatbot using Gemini AI, ChromaDB, and Google Palm Embeddings, integrated seamlessly with Telegram Bot. It provides a natural and engaging conversational experience with an affectionate and emotionally resonant communication style, making it feel like a caring conversational partner.
 
 ---
@@ -10,38 +10,31 @@ This project implements a Retrieval-Augmented Generation (RAG) Chatbot using Gem
 
 - Utilizes Google Palm Embeddings for efficient vector representation of text.
 - Leverages Gemini Pro model (gemini-1.5-flash) for natural language generation.
+  
+#### 2. Advanced Memorization
 
-#### 2. RAG (Retrieval-Augmented Generation):
+- Short-term memory: Stores the last five messages in a double-ended queue (deque) for maintaining conversational flow.
+- Long-term memory: Extracts key facts (e.g., age, preferences, dislikes) from past conversations and stores them in a structured key-value table, allowing for more relevant and contextual responses.
 
-- Retrieves relevant information from conversation history using ChromaDB.
-- Combines retrieved context with LLM-generated responses for accurate and context-aware interactions.
+#### 3. Intelligent Conversation Retrieval
 
-#### 3. Dynamic Memory Buffer:
+- Retrieves similar vectors from past conversations using ChromaDB, ensuring context-aware interactions.
+- Merges retrieved historical context with key-value stored facts to enhance response accuracy.
 
-- Maintains a buffer of the last three messages for seamless conversational flow.
-- Stores new conversations dynamically in ChromaDB.
+#### 4. Personalized Speaker Style Adaptation
 
-#### 4. Speaker Style Analysis:
+- Analyzes writing style, tone, and emoji usage to tailor responses.
+- Ensures answers mimic the user’s natural conversational flow, making the chatbot more engaging and emotionally intelligent.
 
-- Analyzes writing style, tone, emoji usage, and frequent words.
-- Adapts the generated answers to match the speaker's style for a more personalized conversation.
+#### 5. Telegram Integration
 
-#### 5. Emotionally Intelligent Responses:
-
-- Generates warm and affectionate answers, making the chatbot feel like a caring conversational partner.
-- Mimics conversational patterns and emotional tones based on the speaker's historical messages.
-
-#### 6. Telegram Integration:
-
-Seamlessly integrates with Telegram Bot for user-friendly input and output.
-
-Allows easy configuration of speaker and user roles using /setspeaker and /setuser commands.
-
-Real-time messaging with continuous context-awareness.
+- Allows seamless chat history uploads to automatically recognize user and speaker IDs.
+- Provides real-time interaction with continuous context-awareness.
 
 ## How It Works
 #### 1. Load Conversation History:
 
+- Upload conversations file from telegram.
 - Loads JSON conversations in chunks using orjson for fast processing.
 #### 2. ChromaDB Initialization:
 
@@ -49,11 +42,17 @@ Real-time messaging with continuous context-awareness.
 #### 3. Speaker Style Analysis:
 
 - Analyzes the speaker's writing style, tone, and emoji usage to personalize responses.
-#### 4. Generate Response:
-
-- Uses RAG technique to retrieve relevant context from ChromaDB.
-- Generates an initial answer using Gemini Pro model.
-- Post-processes the answer to match the speaker's style for an emotionally resonant response.
+#### 4. Context Retrieval with ChromaDB
+- When a user sends a message, the system retrieves similar past conversations using vector embeddings.
+- It dynamically combines:
+    - Retrieved historical context from ChromaDB.
+    - Key-value structured data (e.g., user preferences).
+    - The last five messages stored in short-term memory.
+#### 5. Response Generation
+- Using the Gemini API, the chatbot synthesizes a response that:
+    - Integrates retrieved context.
+    - Matches the user’s communication style.
+    - Feels natural and personalized.
 ---
 ## Installation
 #### 1. Clone the repository:
@@ -73,9 +72,15 @@ pip install -r requirements.txt
 ## API Key Setup
 This project uses Google Gemini API and Telegram Bot Token for seamless integration.
 
-- Gemini API Key: Obtain from Google Cloud.
+- Gemini API Key: Obtain from [Google AI Studio](https://aistudio.google.com/apikey)
 
 - Telegram Bot Token: Create a bot using BotFather on Telegram.
+    - Open Telegram and search for ``@BotFather``.
+    - Start a chat and use the command:
+      ```
+      /newbot
+      ```
+    - Follow the instructions to set a name and username for your bot.
 
 - create a ``.env`` file in the root directory:
     ```
@@ -94,13 +99,8 @@ python main.py
 ```
 #### 3. Interact with the Chatbot on Telegram:
 
-- Set the Speaker and User IDs:
-    ```
-    /setspeaker <speaker_id>
-    /setuser <user_id>
-    ```
 - Start chatting:
-    - Type your message to initiate a conversation.
-
+    - Export chat history in JSON format.
+    - Send the exported JSON file as a document attachment.
     - The chatbot will respond with context-aware and emotionally resonant replies.
 
