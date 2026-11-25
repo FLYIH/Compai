@@ -3,7 +3,7 @@ def generate_answer(prompt: str):
     """
     Uses the Gemini Pro model to generate an AI response based on a given prompt.
     """
-    model = genai.GenerativeModel('gemini-1.5-flash')
+    model = genai.GenerativeModel('gemini-3.5-flash-lite')
 
     safety_settings = [
         {

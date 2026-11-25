@@ -9,7 +9,7 @@ def is_important_information(user_query):
     """
     Uses Gemini to determine if the conversation contains important information
     """
-    model = genai.GenerativeModel('gemini-1.5-flash')
+    model = genai.GenerativeModel('gemini-3.5-flash-lite')
 
     # Construct Prompt
     prompt = f"""

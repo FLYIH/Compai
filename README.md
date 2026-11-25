@@ -1,15 +1,17 @@
 # Compai - Companion Chatbot
-This project implements a Retrieval-Augmented Generation (RAG) Chatbot using Gemini AI, ChromaDB, and Google Palm Embeddings, integrated seamlessly with Telegram Bot. It provides a natural and engaging conversational experience with an affectionate and emotionally resonant communication style, making it feel like a caring conversational partner.
+This project implements a Retrieval-Augmented Generation (RAG) Chatbot using Gemini AI, ChromaDB, and Gemini Embeddings, integrated seamlessly with Telegram Bot. It provides a natural and engaging conversational experience with an affectionate and emotionally resonant communication style, making it feel like a caring conversational partner.
 
 ---
+
+> [Demo](https://youtu.be/54qxNNAtHT0)
 
 > [Presentation Slide](https://www.canva.com/design/DAGfoSN9y6A/i_AvmPdiUjaudQNl5wpehA/edit?utm_content=DAGfoSN9y6A&utm_campaign=designshare&utm_medium=link2&utm_source=sharebutton)
 
 ## Features
 #### 1. Embeddings & LLM:
 
-- Utilizes Google Palm Embeddings for efficient vector representation of text.
-- Leverages Gemini Pro model (gemini-1.5-flash) for natural language generation.
+- Utilizes Gemini Embeddings (gemini-embedding-001) for efficient vector representation of text.
+- Leverages Gemini (gemini-3.5-flash-lite) for natural language generation.
   
 #### 2. Advanced Memorization
 
@@ -53,6 +55,29 @@ This project implements a Retrieval-Augmented Generation (RAG) Chatbot using Gem
     - Integrates retrieved context.
     - Matches the user’s communication style.
     - Feels natural and personalized.
+
+## Architecture
+#### Uploading Chat History
+```mermaid
+flowchart TD
+    A["Upload<br/>chat history"] --> B["Identify<br/>speaker & user"]
+    B --> C["Embed messages<br/>into ChromaDB"]
+    C --> D["Analyze<br/>speaking style"]
+    D --> E["Ready to chat"]
+```
+
+#### Answering a Message
+```mermaid
+flowchart TD
+    A["User sends<br/>a message"] --> B["Retrieve<br/>past chats"]
+    A --> C["Update<br/>long-term memory"]
+    A --> D["Recall<br/>last 5 messages"]
+    B --> E["Generate reply<br/>with Gemini"]
+    C --> E
+    D --> E
+    E --> F["Rewrite in<br/>speaker's style"]
+    F --> G["Reply on<br/>Telegram"]
+```
 ---
 ## Installation
 #### 1. Clone the repository:
@@ -60,14 +85,14 @@ This project implements a Retrieval-Augmented Generation (RAG) Chatbot using Gem
 git clone https://github.com/FLYIH/Compai.git
 cd Compai
 ```
-#### 2. Create a virtual environment:
+#### 2. Create a virtual environment (Python 3.11 or 3.12 recommended):
 ```
 python3 -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
+source venv/bin/activate  # On Windows PowerShell: .\venv\Scripts\Activate.ps1
 ```
 #### 3. Install required dependencies:
 ```
-pip install -r requirements.txt
+python -m pip install -r requirements.txt
 ```
 ## API Key Setup
 This project uses Google Gemini API and Telegram Bot Token for seamless integration.
@@ -91,7 +116,7 @@ This project uses Google Gemini API and Telegram Bot Token for seamless integrat
 ## Running the Chatbot
 #### 1. Activate the virtual environment:
 ```
-source venv/bin/activate
+source venv/bin/activate  # On Windows PowerShell: .\venv\Scripts\Activate.ps1
 ```
 #### 2. Run the chatbot:
 ```

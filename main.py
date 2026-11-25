@@ -43,13 +43,16 @@ if not os.path.exists(db_folder):
 db_path = os.path.join(os.getcwd(), db_folder)
 client = chromadb.PersistentClient(path=db_path)
 
-if db_name in client.list_collections():
+# chromadb >= 1.0 returns Collection objects; older versions return names
+existing_collections = [getattr(c, "name", c) for c in client.list_collections()]
+
+if db_name in existing_collections:
     client.delete_collection(db_name)
 
 global collection
 collection = client.get_or_create_collection(name=db_name)
 
-if("user_memory" in client.list_collections()):
+if("user_memory" in existing_collections):
     client.delete_collection("user_memory")
 
 global memory_collection

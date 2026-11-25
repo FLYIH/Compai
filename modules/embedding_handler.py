@@ -4,7 +4,7 @@ def get_embedding(text: str) -> list[float]:
     return get_embeddings_batch([text])[0]
 
 def get_embeddings_batch(texts: list[str]) -> list[list[float]]:
-    model = "models/embedding-001"
+    model = "models/gemini-embedding-001"
     responses = []
 
     batch_size = 10

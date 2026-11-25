@@ -61,3 +61,4 @@ answer_generate.py
 conversation/result.json
 conversation/chat_history.json
 conversation/conversation3.json
+result.json

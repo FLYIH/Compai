@@ -39,7 +39,7 @@ def analyze_speaker_style(collection, speaker, n_results=10):
 
 
 def extract_style_from_history(chat_history_texts):
-    model = genai.GenerativeModel('gemini-1.5-flash')
+    model = genai.GenerativeModel('gemini-3.5-flash-lite')
 
     prompt = f"""
     Analyze the following chat messages and extract the writing style.
